@@ -1,0 +1,14 @@
+name: cpw_pw
+description: CPW for PW server.
+version: 1.0.0
+repository: https://github.com/MrBIOSs/cpw_pw
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  path: ^1.9.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
