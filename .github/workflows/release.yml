@@ -1,0 +1,47 @@
+name: Build & Release CPW Patcher
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Static analysis & tests
+        run: |
+          dart analyze --fatal-infos
+          dart format --set-exit-if-changed .
+          dart test
+
+      - name: Compile AOT executable
+        run: dart compile exe bin/cpw.dart -o cpw --target=linux_x64 --O3
+
+      - name: Generate checksums
+        run: sha256sum cpw > cpw.sha256
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "CPW Patcher ${{ github.ref_name }}"
+          body: "Auto-generated release for ${{ github.ref_name }}"
+          files: |
+            cpw
+            cpw.sha256
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
