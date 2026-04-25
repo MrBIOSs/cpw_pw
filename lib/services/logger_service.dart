@@ -5,6 +5,8 @@ import 'package:ansicolor/ansicolor.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
+import '../utils/ansi_colors.dart';
+
 /// A service for managing logging in a CLI application.
 ///
 /// Provides simultaneous console output (with color support)
@@ -30,13 +32,6 @@ final class LoggerService {
   ///
   /// Throws a [StateError] if the [initialize] method has not yet been called.
   static LoggerService get instance => _instance ?? (throw StateError('LoggerService not initialized'));
-
-  static final AnsiPen _penSevere = AnsiPen()..red(bold: true);
-  static final AnsiPen _penWarning = AnsiPen()..yellow();
-  static final AnsiPen _penInfo = AnsiPen()..cyan();
-  static final AnsiPen _penConfig = AnsiPen()..green();
-  static final AnsiPen _penFine = AnsiPen()..gray(level: 0.5);
-  static final AnsiPen _penDefault = AnsiPen();
 
   IOSink? _consoleSink;
   IOSink? _errorsSink;
@@ -99,12 +94,12 @@ final class LoggerService {
 
   /// Selects the appropriate [AnsiPen] depending on the log importance level.
   AnsiPen _getColor(Level level) => switch (level) {
-    Level.SEVERE => _penSevere,
-    Level.WARNING => _penWarning,
-    Level.INFO => _penInfo,
-    Level.CONFIG => _penConfig,
-    Level.FINE => _penFine,
-    _ => _penDefault,
+    Level.SEVERE => AnsiColors.error,
+    Level.WARNING => AnsiColors.warning,
+    Level.INFO => AnsiColors.description,
+    Level.CONFIG => AnsiColors.command,
+    Level.FINE => AnsiColors.dim,
+    _ => AnsiColors.monochrome,
   };
 
   /// Intercepts system signals to ensure files are closed correctly.

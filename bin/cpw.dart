@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:logging/logging.dart';
+
 import 'package:cpw_pw/services/logger_service.dart';
+import 'package:cpw_pw/view/cli_runner.dart';
 
 Future<void> main(List<String> arguments) async {
   final logDir = path.join(_getProjectRoot(), 'log');
@@ -22,10 +24,6 @@ Future<void> main(List<String> arguments) async {
   } finally {
     await loggerService.dispose();
   }
-}
-
-Future<void> runCli(List<String> args) async {
-  throw Exception('Test bug');
 }
 
 /// Defines the root directory of the project.
