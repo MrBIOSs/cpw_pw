@@ -1,3 +1,64 @@
 # https://dart.dev/guides/libraries/private-files
-# Created by `dart pub`
+# ==========================================
+# Dart & Package Management
+# ==========================================
 .dart_tool/
+
+# ==========================================
+# Build & Compilation Artifacts
+# ==========================================
+*.exe
+*.aot
+*.kernel
+*.dill
+*.snapshot
+build/
+cpw
+cpw_bin
+server
+
+# ==========================================
+# IDE & Editors
+# ==========================================
+.idea/
+.vscode/
+*.iml
+*.code-workspace
+
+# ==========================================
+# OS Specific
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+*.log
+log/
+logs/
+tmp/
+temp/
+
+# ==========================================
+# Secrets & Sensitive Config
+# ==========================================
+.env
+.env.*
+config/keys/
+*.pem
+*.key
+*.p12
+*.jks
+
+# ==========================================
+# Test Coverage & Generated Code
+# ==========================================
+coverage/
+*.lcov
+*.g.dart
+*.freezed.dart

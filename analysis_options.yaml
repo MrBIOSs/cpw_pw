@@ -1,30 +1,51 @@
-# This file configures the static analysis results for your project (errors,
-# warnings, and lints).
-#
-# This enables the 'recommended' set of lints from `package:lints`.
-# This set helps identify many issues that may lead to problems when running
-# or consuming Dart code, and enforces writing Dart using a single, idiomatic
-# style and format.
-#
-# If you want a smaller set of lints you can change this to specify
-# 'package:lints/core.yaml'. These are just the most critical lints
-# (the recommended set includes the core lints).
-# The core lints are also what is used by pub.dev for scoring packages.
-
 include: package:lints/recommended.yaml
 
-# Uncomment the following section to specify additional rules.
+linter:
+  rules:
+    # Security and prevention of hidden bugs
+    avoid_dynamic_calls: true
+    only_throw_errors: true
+    unawaited_futures: true
+    exhaustive_cases: true
+    avoid_slow_async_io: true
 
-# linter:
-#   rules:
-#     - camel_case_types
+    # Style, readability, and modern syntax
+    prefer_single_quotes: true
+    require_trailing_commas: true
+    sort_pub_dependencies: true
+    prefer_relative_imports: true
+    prefer_interpolation_to_compose_strings: true
+    unnecessary_lambdas: true
+    unnecessary_string_escapes: true
+    unnecessary_brace_in_string_interps: true
+    use_colored_box: false
+    use_decorated_box: false
 
-# analyzer:
-#   exclude:
-#     - path/to/excluded/files/**
+    # Architecture and supportability
+    sort_constructors_first: true
+    sort_unnamed_constructors_first: true
+    prefer_constructors_over_static_methods: true
+    prefer_final_locals: true
+    avoid_print: true
+    use_string_buffers: true
+    avoid_redundant_argument_values: true
+    parameter_assignments: false
 
-# For more information about the core and recommended set of lints, see
-# https://dart.dev/go/core-lints
-
-# For additional information about configuring this file, see
-# https://dart.dev/guides/language/analysis-options
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "build/**"
+    - "**.mocks.dart"
+    - "test/**"
+  errors:
+    avoid_dynamic_calls: error
+    unawaited_futures: error
+    only_throw_errors: error
+    dead_code: error
+    unused_element: error
+    unused_local_variable: error
