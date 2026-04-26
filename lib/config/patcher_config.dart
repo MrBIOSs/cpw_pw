@@ -1,0 +1,61 @@
+import 'package:path/path.dart' as path;
+
+/// Immutable patcher configuration.
+/// All fields are required and validated upon upload.
+final class PatcherConfig {
+  const PatcherConfig({
+    required this.rsaPrivateKey,
+    required this.rsaPublicKey,
+    required this.rsaModulus,
+    required this.rsaPrivateExponent,
+    required this.rsaPublicExponent,
+    required this.dbHost,
+    required this.dbUser,
+    required this.dbPassword,
+    required this.dbName,
+    required this.patchPath,
+    required this.patchNewDir,
+    required this.patchCpwDir,
+    required this.minLauncherVer,
+    required this.minPatcherVer,
+    required this.minElementVer,
+    required this.removeFolders,
+    required this.removeFiles,
+    required this.addSize,
+  });
+
+  // RSA parameters
+  final String rsaPrivateKey;
+  final String rsaPublicKey;
+  final BigInt rsaModulus;
+  final BigInt rsaPrivateExponent;
+  final BigInt rsaPublicExponent;
+
+  // DB
+  final String dbHost;
+  final String dbUser;
+  final String dbPassword;
+  final String dbName;
+
+  // Paths (relative to the application root)
+  final String patchPath;
+  final String patchNewDir;
+  final String patchCpwDir;
+
+  // Minimum client versions
+  final int minLauncherVer;
+  final int minPatcherVer;
+  final int minElementVer;
+
+  // Behavior Flags
+  final bool removeFolders;
+  final bool removeFiles;
+  final bool addSize;
+
+  /// Connector for the DB driver
+  String get dbDsn => 'mysql://$dbUser:$dbPassword@$dbHost/$dbName';
+
+  /// Resolves a relative path relative to the application's base directory.
+  String resolvePath(String relativePath, String baseDir) =>
+      path.normalize(path.join(baseDir, relativePath));
+}
