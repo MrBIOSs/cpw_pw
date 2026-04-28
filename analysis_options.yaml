@@ -12,7 +12,6 @@ linter:
     # Style, readability, and modern syntax
     prefer_single_quotes: true
     require_trailing_commas: true
-    sort_pub_dependencies: true
     prefer_relative_imports: true
     prefer_interpolation_to_compose_strings: true
     unnecessary_lambdas: true
