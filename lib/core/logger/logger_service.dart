@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:ansicolor/ansicolor.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-
 import '../utils/ansi_colors.dart';
 
 /// A service for managing logging in a CLI application.

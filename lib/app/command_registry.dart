@@ -1,5 +1,5 @@
 import 'dart:io';
-import '../utils/ansi_colors.dart';
+import '../core/utils/ansi_colors.dart';
 import 'command_info.dart';
 
 /// Command registry with dynamic registration support and generated result.

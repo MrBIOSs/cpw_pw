@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:logging/logging.dart';
 
-import 'package:cpw_pw/services/logger_service.dart';
-import 'package:cpw_pw/view/cli_runner.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
+import 'package:cpw_pw/app/cli_runner.dart';
 import 'package:cpw_pw/config/config_loader.dart';
 
 Future<void> main(List<String> arguments) async {

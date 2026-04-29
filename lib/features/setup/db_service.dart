@@ -1,7 +1,7 @@
 import 'dart:io';
-import '../config/patcher_config.dart';
-import '../database/database.dart';
-import 'logger_service.dart';
+import '../../config/patcher_config.dart';
+import '../../core/database/database.dart';
+import '../../core/logger/logger_service.dart';
 
 /// Initialization, migrations, script execution.
 final class DbService {
