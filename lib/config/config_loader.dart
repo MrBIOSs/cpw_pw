@@ -71,13 +71,6 @@ final class ConfigLoader {
     };
 
     return PatcherConfig(
-      // RSA
-      rsaPrivateKey: get('rsa-private-key', parse: (s) => s),
-      rsaPublicKey: get('rsa-public-key', parse: (s) => s),
-      rsaModulus: get('rsa-modus', parse: BigInt.parse),
-      rsaPrivateExponent: get('rsa-private-x', parse: BigInt.parse),
-      rsaPublicExponent: get('rsa-public-x', parse: BigInt.parse),
-
       // DB
       dbHost: get('db-host', parse: (s) => s, defaultValue: 'localhost'),
       dbUser: get('db-user', parse: (s) => s),

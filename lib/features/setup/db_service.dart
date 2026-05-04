@@ -1,5 +1,5 @@
 import 'dart:io';
-import '../../config/patcher_config.dart';
+import '../../config/config.dart';
 import '../../core/database/database.dart';
 import '../../core/logger/logger_service.dart';
 

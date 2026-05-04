@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:mysql_client/exception.dart';
 import 'package:mysql_client/mysql_client.dart';
 
-import '../../config/patcher_config.dart';
+import '../../config/config.dart';
 import 'database_interface.dart';
 import 'exceptions.dart';
 

@@ -4,11 +4,6 @@ import 'package:path/path.dart' as path;
 /// All fields are required and validated upon upload.
 final class PatcherConfig {
   const PatcherConfig({
-    required this.rsaPrivateKey,
-    required this.rsaPublicKey,
-    required this.rsaModulus,
-    required this.rsaPrivateExponent,
-    required this.rsaPublicExponent,
     required this.dbHost,
     required this.dbUser,
     required this.dbPassword,
@@ -23,13 +18,6 @@ final class PatcherConfig {
     required this.removeFiles,
     required this.addSize,
   });
-
-  // RSA parameters
-  final String rsaPrivateKey;
-  final String rsaPublicKey;
-  final BigInt rsaModulus;
-  final BigInt rsaPrivateExponent;
-  final BigInt rsaPublicExponent;
 
   // DB
   final String dbHost;

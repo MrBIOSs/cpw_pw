@@ -5,10 +5,11 @@ import 'package:logging/logging.dart';
 
 import 'package:cpw_pw/core/logger/logger_service.dart';
 import 'package:cpw_pw/app/cli_runner.dart';
-import 'package:cpw_pw/config/config_loader.dart';
+import 'package:cpw_pw/config/config.dart';
 
 Future<void> main(List<String> arguments) async {
-  final logDir = path.join(_getProjectRoot(), 'log');
+  final baseDir = _getProjectRoot();
+  final logDir = path.join(baseDir, 'log');
   final loggerService = LoggerService(logDir: logDir);
   await loggerService.initialize();
 
@@ -16,12 +17,13 @@ Future<void> main(List<String> arguments) async {
   log.info('CPW Patcher started');
 
   try {
-    final configPath = path.join(_getProjectRoot(), 'config', 'patcher.conf');
-    await ConfigLoader.load(configPath: configPath);
+    final configPath = path.join(baseDir, 'config', 'patcher.conf');
+    final config = await ConfigLoader.load(configPath: configPath);
     log.info('The config was loaded successfully.');
 
-    await runCli(arguments);
+    final exitCode = await runCli(arguments, config, baseDir);
     log.info('Completed successfully');
+    exit(exitCode);
   } catch (e, st) {
     log.severe('Unhandled error', e, st);
   } finally {

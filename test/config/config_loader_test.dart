@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
-import 'package:cpw_pw/config/config_loader.dart';
+import 'package:cpw_pw/config/config.dart';
 
 void main() {
   late Directory tempDir;

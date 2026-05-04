@@ -49,7 +49,7 @@ temp/
 # ==========================================
 .env
 .env.*
-config/keys/
+config/keys.json
 *.pem
 *.key
 *.p12
