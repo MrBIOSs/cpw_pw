@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:ansicolor/ansicolor.dart';
-import 'package:cpw_pw/services/logger_service.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
 
 void main() {
   final testLogDir = p.join(Directory.systemTemp.path, 'logger_test_logs');

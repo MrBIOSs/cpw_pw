@@ -1,20 +1,15 @@
 import 'dart:io';
 
-import '../../../config/config.dart';
-import '../../../core/crypto/exceptions.dart';
+import '../../../core/crypto/crypto.dart';
 import '../../../core/utils/ansi_colors.dart';
+import '../../../di/service_locator.dart' as di;
 import '../security.dart';
 
 /// Command ./cpw rsagen: regenerate RSA keys.
 final class RsagenCommand {
   /// Returns exit code: 0 = success, 1 = error.
-  Future<int> execute({
-    required List<String> args,
-    required PatcherConfig config,
-    required String baseDir,
-  }) async {
-    final storage = FileKeyStorage(baseDir: baseDir);
-    final rsaService = RsaService(storage: storage);
+  Future<int> execute({ required List<String> args }) async {
+    final rsaService = di.getIt<RsaService>();
 
     if (rsaService.hasKeys()) {
       stdout.writeln(AnsiColors.warning(

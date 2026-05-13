@@ -1,46 +1,35 @@
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:cpw_pw/app/cli_runner.dart';
 import 'package:logging/logging.dart';
 
+import 'package:cpw_pw/di/service_locator.dart' as di;
 import 'package:cpw_pw/core/logger/logger_service.dart';
-import 'package:cpw_pw/app/cli_runner.dart';
-import 'package:cpw_pw/config/config.dart';
 
 Future<void> main(List<String> arguments) async {
-  final baseDir = _getProjectRoot();
-  final logDir = path.join(baseDir, 'log');
-  final loggerService = LoggerService(logDir: logDir);
-  await loggerService.initialize();
-
+  LoggerService? loggerService;
   final log = Logger('App');
-  log.info('CPW Patcher started');
 
   try {
-    final configPath = path.join(baseDir, 'config', 'patcher.conf');
-    final config = await ConfigLoader.load(configPath: configPath);
-    log.info('The config was loaded successfully.');
+    await di.initServiceLocator();
 
-    final exitCode = await runCli(arguments, config, baseDir);
-    log.info('Completed successfully');
+    loggerService = di.getIt<LoggerService>();
+    await loggerService.initialize();
+
+    log.info('CPW Patcher started');
+
+    final exitCode = await runCli(arguments);
+
+    log.info('Exiting with code: $exitCode');
     exit(exitCode);
   } catch (e, st) {
-    log.severe('Unhandled error', e, st);
+    if (loggerService != null) {
+      log.severe('Execution failed', e, st);
+    } else {
+      stderr.writeln('Startup failed: $e\n$st');
+    }
+    exit(1);
   } finally {
-    await loggerService.dispose();
-  }
-}
-
-/// Defines the root directory of the project.
-/// Returns the current directory during development (Dart Run)
-/// or the directory containing the binary when running the compiled file.
-String _getProjectRoot() {
-  final exePath = Platform.resolvedExecutable;
-  final exeName = path.basenameWithoutExtension(exePath).toLowerCase();
-
-  if (exeName == 'dart') {
-    return Directory.current.path;
-  } else {
-    return path.dirname(exePath);
+    await loggerService?.dispose();
   }
 }

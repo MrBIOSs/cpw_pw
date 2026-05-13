@@ -1,10 +1,10 @@
 import 'dart:io';
 import '../../config/config.dart';
-import '../../core/database/database.dart';
-import '../../core/logger/logger_service.dart';
+import '../logger/logger_service.dart';
+import 'database.dart';
 
 /// Initialization, migrations, script execution.
-final class DbService {
+class DbService {
   DbService({
     required PatcherConfig config,
     IDatabase? adapter,
@@ -14,7 +14,11 @@ final class DbService {
   final PatcherConfig _config;
   final IDatabase _db;
 
+  /// Current DBMS type
   DbType get type => _db.type;
+
+  /// Checks if the connection is established.
+  bool get isConnected => _db.isConnected;
 
   /// Initializes a connection to the database.
   Future<void> initialize() async {
@@ -24,9 +28,8 @@ final class DbService {
   }
 
   /// Executes the initialization script, automatically selecting the version for the current database.
-  Future<ScriptResult> runInstallScript({String? baseDir}) async {
-    final dir = baseDir ?? 'config';
-    final scriptPath = '$dir/install_${type.name}.sql';
+  Future<ScriptResult> runInstallScript({String? customPath}) async {
+    final scriptPath = customPath ?? _config.resolvePath('config/install_${type.name}.sql');
     final scriptFile = File(scriptPath);
 
     if (!scriptFile.existsSync()) {
@@ -77,9 +80,16 @@ final class DbService {
         }
       }
     }
-
-
     return missing;
+  }
+
+  /// Executes an arbitrary query.
+  Future<QueryResult> execute(String query, [Map<String, dynamic>? params]) {
+    return _db.execute(query, params);
+  }
+
+  Future<T> runTransaction<T>(Future<T> Function(dynamic) callback) {
+    return _db.runTransaction(callback);
   }
 
   /// Closes the connection to the database.

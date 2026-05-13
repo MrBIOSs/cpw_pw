@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 /// All fields are required and validated upon upload.
 final class PatcherConfig {
   const PatcherConfig({
+    required this.baseDir,
     required this.dbHost,
     required this.dbUser,
     required this.dbPassword,
@@ -18,6 +19,8 @@ final class PatcherConfig {
     required this.removeFiles,
     required this.addSize,
   });
+
+  final String baseDir;
 
   // DB
   final String dbHost;
@@ -44,6 +47,6 @@ final class PatcherConfig {
   String get dbDsn => 'mysql://$dbUser:$dbPassword@$dbHost/$dbName';
 
   /// Resolves a relative path relative to the application's base directory.
-  String resolvePath(String relativePath, String baseDir) =>
+  String resolvePath(String relativePath) =>
       path.normalize(path.join(baseDir, relativePath));
 }

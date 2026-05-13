@@ -21,11 +21,6 @@ void main() {
   group('ConfigLoader.load', () {
     test('should load valid config file and use default values', () async {
       await configFile.writeAsString('''
-        rsa-private-key=private_key_data
-        rsa-public-key=public_key_data
-        rsa-modus=123456789
-        rsa-private-x=987654321
-        rsa-public-x=65537
         db-user=admin
         db-password=secret
         db-name=patcher_db
@@ -33,10 +28,10 @@ void main() {
 
       final config = await ConfigLoader.load(configPath: configFile.path);
 
-      expect(config.rsaPrivateKey, 'private_key_data');
+      expect(config.dbUser, 'admin');
       expect(config.dbHost, 'localhost');
       expect(config.removeFolders, isTrue);
-      expect(config.rsaModulus, BigInt.from(123456789));
+      expect(config.minLauncherVer, 1);
     });
 
     test('should throw StateError if required field is missing', () async {
@@ -50,9 +45,7 @@ void main() {
 
     test('should throw FormatException on invalid types', () async {
       await configFile.writeAsString('''
-        rsa-private-key=key
-        rsa-public-key=key
-        rsa-modus=not_a_number
+        min-element-ver=not_a_number
         db-user=admin
         db-password=pass
         db-name=db
@@ -67,21 +60,19 @@ void main() {
 
   group('ConfigLoader logic (_buildAndValidate)', () {
     test('parseBool should handle various formats', () async {
-      final baseConfig = {
-        'rsa-private-key': 'k', 'rsa-public-key': 'k',
-        'rsa-modus': '1', 'rsa-private-x': '1', 'rsa-public-x': '1',
-        'db-user': 'u', 'db-password': 'p', 'db-name': 'd',
-      };
-
       await configFile.writeAsString('''
-        ${baseConfig.entries.map((e) => "${e.key}=${e.value}").join('\n')}
-        remove-folders=yes
-        remove-files=0
+        db-user = u
+        db-password = p
+        db-name = n
+        remove-folders = no
+        remove-files = 1
+        add-size = false
       ''');
 
       final config = await ConfigLoader.load(configPath: configFile.path);
-      expect(config.removeFolders, isTrue); // 'yes' = true
-      expect(config.removeFiles, isFalse);  // '0' = false
+      expect(config.removeFolders, isFalse); // 'no' == false
+      expect(config.removeFiles, isTrue);    // '1' == true
+      expect(config.addSize, isFalse);       // 'false' == false
     });
   });
 }

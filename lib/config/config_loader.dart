@@ -11,12 +11,13 @@ final class ConfigLoader {
   /// Loads and validates the configuration.
   /// [configPath] - path to the file (default: `config/patcher.conf` from CWD)
   static Future<PatcherConfig> load({String? configPath}) async {
-    final currentPath = configPath ?? path.join(Directory.current.path, 'config', 'patcher.conf');
+    final baseDir = _getProjectRoot();
+    final currentPath = configPath ?? path.join(baseDir, 'config', 'patcher.conf');
     final raw = await ConfigParser.parseFile(currentPath);
 
     _applyEnvOverrides(raw);
 
-    return _buildAndValidate(raw);
+    return _buildAndValidate(raw, baseDir);
   }
 
   /// Applies environment variables over values from a file.
@@ -45,7 +46,7 @@ final class ConfigLoader {
   }
 
   /// Builds a typed config with validation.
-  static PatcherConfig _buildAndValidate(Map<String, String> raw) {
+  static PatcherConfig _buildAndValidate(Map<String, String> raw, String baseDir) {
     T get<T>(
         String key, {
           required T Function(String) parse,
@@ -71,6 +72,8 @@ final class ConfigLoader {
     };
 
     return PatcherConfig(
+      baseDir: baseDir,
+
       // DB
       dbHost: get('db-host', parse: (s) => s, defaultValue: 'localhost'),
       dbUser: get('db-user', parse: (s) => s),
@@ -92,5 +95,17 @@ final class ConfigLoader {
       removeFiles: get('remove-files', parse: parseBool, defaultValue: true),
       addSize: get('add-size', parse: parseBool, defaultValue: true),
     );
+  }
+
+  /// Defines the root directory of the project.
+  /// Returns the current directory during development (Dart Run)
+  /// or the directory containing the binary when running the compiled file.
+  static String _getProjectRoot() {
+    final exePath = Platform.resolvedExecutable;
+    final exeName = path.basenameWithoutExtension(exePath).toLowerCase();
+
+    return exeName == 'dart' || exeName == 'dart.exe'
+        ? Directory.current.path
+        : path.dirname(exePath);
   }
 }

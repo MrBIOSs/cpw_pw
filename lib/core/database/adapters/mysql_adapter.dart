@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:mysql_client/exception.dart';
 import 'package:mysql_client/mysql_client.dart';
 
-import '../../config/config.dart';
-import 'database_interface.dart';
-import 'exceptions.dart';
+import '../../../config/config.dart';
+import '../database_interface.dart';
+import '../exceptions.dart';
 
 final class MysqlAdapter implements IDatabase {
   MysqlAdapter(this._config);
@@ -32,6 +32,7 @@ final class MysqlAdapter implements IDatabase {
         userName: _config.dbUser,
         password: _config.dbPassword,
         databaseName: _config.dbName,
+        secure: false,
       );
 
       await _connection?.connect();

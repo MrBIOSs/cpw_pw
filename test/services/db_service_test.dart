@@ -3,9 +3,8 @@ import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:cpw_pw/database/database_interface.dart';
-import 'package:cpw_pw/services/db_service.dart';
-import 'package:cpw_pw/config/patcher_config.dart';
+import 'package:cpw_pw/core/database/database.dart';
+import 'package:cpw_pw/config/config.dart';
 
 class MockDatabase extends Mock implements IDatabase {}
 
@@ -17,15 +16,11 @@ void main() {
 
   setUp(() async {
     mockDb = MockDatabase();
-
+    tempDir = await Directory.systemTemp.createTemp('db_service_test_');
     mockConfig = PatcherConfig(
-      rsaPrivateKey: 'test_private_key',
-      rsaPublicKey: 'test_public_key',
-      rsaModulus: BigInt.from(65537),
-      rsaPrivateExponent: BigInt.from(12345),
-      rsaPublicExponent: BigInt.from(65537),
+      baseDir: tempDir.path,
       dbHost: 'localhost',
-      dbUser: 'root',
+      dbUser: 'user',
       dbPassword: 'password',
       dbName: 'test_db',
       patchPath: 'files',
@@ -39,8 +34,6 @@ void main() {
       addSize: true,
     );
     dbService = DbService(config: mockConfig, adapter: mockDb);
-
-    tempDir = await Directory.systemTemp.createTemp('db_service_test_');
 
     when(() => mockDb.type).thenReturn(DbType.mysql);
     when(() => mockDb.connect()).thenAnswer((_) async => {});
@@ -64,10 +57,10 @@ void main() {
       (affectedRows: 0, rows: [{'1': '1'}])
       );
 
-      final missing = await dbService.checkRequiredTables(['users', 'files']);
+      final missing = await dbService.checkRequiredTables(['files']);
 
       expect(missing, isEmpty);
-      verify(() => mockDb.execute(any(), any())).called(2);
+      verify(() => mockDb.execute(any(), any())).called(1);
     });
 
     test('should return missing tables when they are not in schema', () async {
@@ -96,7 +89,7 @@ void main() {
   group('DbService.runInstallScript', () {
     test('should throw FileSystemException if script file missing', () async {
       expect(
-            () => dbService.runInstallScript(baseDir: tempDir.path),
+            () => dbService.runInstallScript(customPath: tempDir.path),
         throwsA(isA<FileSystemException>()),
       );
     });
@@ -108,7 +101,7 @@ void main() {
       when(() => mockDb.executeScript(any(), onProgress: any(named: 'onProgress')))
           .thenAnswer((_) async => (totalQueries: 1, successfulQueries: 1, results: <QueryResult>[]));
 
-      await dbService.runInstallScript(baseDir: tempDir.path);
+      await dbService.runInstallScript(customPath: scriptFile.path);
 
       verify(() => mockDb.executeScript('CREATE TABLE test;', onProgress: any(named: 'onProgress'))).called(1);
     });

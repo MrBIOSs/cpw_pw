@@ -8,9 +8,8 @@ import '../../core/crypto/crypto.dart';
 import '../../core/logger/logger_service.dart';
 import 'key_storage_interface.dart';
 
-
 /// Service for generating and managing RSA keys.
-final class RsaService {
+class RsaService {
   RsaService({
     required IKeyStorage storage,
     SecureRandom? random,
@@ -62,7 +61,7 @@ ${keys.publicKeyPem}
   Future<void> deleteKeys() => _storage.delete();
 
   static SecureRandom _createSecureRandom() {
-    final rng = FortunaRandom();
+    final secureRandom = FortunaRandom();
     final seed = Uint8List(32);
     final random = math.Random.secure();
 
@@ -70,8 +69,8 @@ ${keys.publicKeyPem}
       seed[i] = random.nextInt(256);
     }
 
-    rng.seed(KeyParameter(seed));
-    return rng;
+    secureRandom.seed(KeyParameter(seed));
+    return secureRandom;
   }
 
   Future<RsaKeyPair> _generateKeyPair({required int keySize}) async {
