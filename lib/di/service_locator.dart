@@ -4,6 +4,7 @@ import '../app/command_registry.dart';
 import '../config/config.dart';
 import '../core/database/database.dart';
 import '../core/logger/logger_service.dart';
+import '../features/revisions/revisions.dart';
 import '../features/security/security.dart';
 import '../features/setup/setup.dart';
 
@@ -17,6 +18,7 @@ Future<void> initServiceLocator({ String? configPath }) async {
   _registerLogger();
   _registerDatabase();
   _registerCrypto();
+  _registerRevisions();
   _registerFeatures();
   _registerCommands();
 }
@@ -49,6 +51,19 @@ void _registerCrypto() {
 
   getIt.registerLazySingleton<IKeyStorage>(() => FileKeyStorage(baseDir: baseDir));
   getIt.registerLazySingleton<RsaService>(() => RsaService(storage: getIt()));
+}
+
+void _registerRevisions() {
+  final config = getIt<PatcherConfig>();
+
+  getIt.registerLazySingleton<RevisionService>(
+        () => RevisionService(
+      config: config,
+      dbService: getIt.isRegistered<DbService>() ? getIt<DbService>() : null,
+    ),
+  );
+
+  getIt.registerFactory<InitialCommand>(InitialCommand.new);
 }
 
 void _registerFeatures() {
@@ -93,8 +108,7 @@ CommandRegistry _buildCommandRegistry() {
   name: 'initial',
   description: 'Create initial (base) revision, doesn\'t create lists',
   usage: null,
-  action: (args) async => 0,
-  ));
+  action: (args) async => getIt<InitialCommand>().execute(args: args)));
 
   registry.register((
   name: 'new',

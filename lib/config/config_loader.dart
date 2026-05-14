@@ -4,12 +4,12 @@ import 'patcher_config.dart';
 import 'config_parser.dart';
 
 /// Configuration loader with support for:
-/// 1. Reading from the `.conf` file
+/// 1. Reading from the .conf file
 /// 2. Overriding via environment variables (Docker)
 /// 3. Validating types and required fields
 final class ConfigLoader {
   /// Loads and validates the configuration.
-  /// [configPath] - path to the file (default: `config/patcher.conf` from CWD)
+  /// [configPath] - path to the file (default: "config/patcher.conf" from CWD)
   static Future<PatcherConfig> load({String? configPath}) async {
     final baseDir = _getProjectRoot();
     final currentPath = configPath ?? path.join(baseDir, 'config', 'patcher.conf');
@@ -21,7 +21,7 @@ final class ConfigLoader {
   }
 
   /// Applies environment variables over values from a file.
-  /// Format: `CPW_<KEY_UPPER_SNAKE>`
+  /// Format: CPW_<KEY_UPPER_SNAKE>
   static void _applyEnvOverrides(Map<String, String> config) {
     const envMap = {
       'DB_HOST': 'mysql-host',

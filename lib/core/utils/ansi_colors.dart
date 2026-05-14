@@ -1,7 +1,7 @@
 import 'package:ansicolor/ansicolor.dart';
 
 /// General color schemes for CLI output.
-/// Cached `AnsiPen` instances to avoid unnecessary allocations.
+/// Cached AnsiPen instances to avoid unnecessary allocations.
 final class AnsiColors {
   const AnsiColors._();
 

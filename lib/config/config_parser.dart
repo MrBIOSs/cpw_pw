@@ -1,11 +1,11 @@
 import 'dart:io';
 
-/// Parses `.conf` files.
+/// Parses .conf files.
 /// Supports:
-/// - `key=value` format
-/// - `#` and `!` comments
+/// - key=value format
+/// - '#' and '!' comments
 /// - Empty lines
-/// - Spaces around `=`
+/// - Spaces around '='
 final class ConfigParser {
   /// Returns a key-value map from the contents of the config.
   static Map<String, String> parse(String content) {

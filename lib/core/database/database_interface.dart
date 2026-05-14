@@ -20,7 +20,7 @@ abstract interface class IDatabase {
   /// Returns the number of affected rows or the result of the selection.
   Future<QueryResult> execute(String query, [Map<String, dynamic>? params]);
 
-  /// Executes an SQL script (multiple queries separated by `;`).
+  /// Executes an SQL script (multiple queries separated by ';').
   /// [onProgress] is an optional callback for tracking progress.
   Future<ScriptResult> executeScript(
       String script, {

@@ -39,10 +39,12 @@ final class SetupValidator {
   }
 
   Future<void> _validatePaths(List<String> errors) async {
+    final basePath = _config.patchPath;
+
     final paths = [
-      _config.patchPath,
-      _config.patchNewDir,
-      _config.patchCpwDir,
+      basePath,
+      path.join(basePath, _config.patchNewDir),
+      path.join(basePath, _config.patchCpwDir),
     ];
 
     for (final relativePath in paths) {

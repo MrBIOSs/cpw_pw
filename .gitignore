@@ -13,6 +13,7 @@
 *.dill
 *.snapshot
 build/
+files/
 cpw
 cpw_bin
 server

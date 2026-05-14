@@ -128,8 +128,8 @@ final class MysqlAdapter implements IDatabase {
     }
   }
 
-  /// Splits by `;`, removes comments.
-  /// For complex scripts (strings with `;`, stored procedures), a full-fledged SQL parser is required.
+  /// Splits by ';', removes comments.
+  /// For complex scripts (strings with ';', stored procedures), a full-fledged SQL parser is required.
   List<String> _splitScript(String script) {
     final queries = <String>[];
     final lines = script.split('\n');

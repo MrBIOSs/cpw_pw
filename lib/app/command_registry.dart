@@ -15,7 +15,7 @@ final class CommandRegistry {
     _commands.add(command);
   }
 
-  /// Returns the command by name, or `null` if not found.
+  /// Returns the command by name, or null if not found.
   CommandInfo? find(String name) {
     final results = _commands.where((c) => c.name == name);
     return results.isEmpty ? null : results.first;

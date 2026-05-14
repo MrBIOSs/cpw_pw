@@ -43,9 +43,6 @@ final class PatcherConfig {
   final bool removeFiles;
   final bool addSize;
 
-  /// Connector for the DB driver
-  String get dbDsn => 'mysql://$dbUser:$dbPassword@$dbHost/$dbName';
-
   /// Resolves a relative path relative to the application's base directory.
   String resolvePath(String relativePath) =>
       path.normalize(path.join(baseDir, relativePath));
