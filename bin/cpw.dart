@@ -1,8 +1,6 @@
 import 'dart:io';
-
-import 'package:cpw_pw/app/cli_runner.dart';
 import 'package:logging/logging.dart';
-
+import 'package:cpw_pw/app/cli_runner.dart';
 import 'package:cpw_pw/di/service_locator.dart' as di;
 import 'package:cpw_pw/core/logger/logger_service.dart';
 

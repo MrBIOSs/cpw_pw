@@ -4,7 +4,7 @@ import '../../../core/utils/ansi_colors.dart';
 import '../../../di/service_locator.dart' as di;
 import '../revision_service.dart';
 
-/// Command ./cpw initial.
+/// Command "./cpw initial".
 final class InitialCommand {
   Future<int> execute({required List<String> args}) async {
     final help = args.contains('--help') || args.contains('-h');

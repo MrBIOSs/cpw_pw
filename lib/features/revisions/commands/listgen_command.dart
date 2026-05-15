@@ -1,0 +1,60 @@
+import 'dart:io';
+import '../../../core/utils/ansi_colors.dart';
+import '../../../di/service_locator.dart' as di;
+import '../revisions.dart';
+
+/// Command "./cpw listgen".
+/// Regenerates manifests from the current state of the database without incrementing the revision.
+final class ListgenCommand {
+  Future<int> execute({required List<String> args}) async {
+    final type = _parseTypeArg(args);
+    final help = args.contains('--help') || args.contains('--h');
+
+    if (help) {
+      stdout.writeln(AnsiColors.heading('Help — regenerate manifests only'));
+      stdout.writeln(AnsiColors.dim('  - Read current state from DB/files'));
+      stdout.writeln(AnsiColors.dim('  - Rebuild files.md5 & v-N.inc'));
+      stdout.writeln(AnsiColors.dim('  - Sign with RSA'));
+      return 0;
+    }
+
+    try {
+      final revisionService = di.getIt<RevisionService>();
+      final manifestService = di.getIt<ManifestService>();
+      final state = await revisionService.getCurrentState();
+
+      stdout.writeln(AnsiColors.heading('Regenerating manifests from current DB state...'));
+      stdout.writeln();
+
+      final types = type != null ? [type] : ['element', 'launcher', 'patcher'];
+
+      for (final t in types) {
+        stdout.writeln(AnsiColors.dim('  - $t: reading DB & rebuilding...'));
+        await manifestService.generateManifests(t, state);
+        stdout.writeln(AnsiColors.success('    $t: done'));
+      }
+
+      stdout.writeln();
+      stdout.writeln(AnsiColors.success('Manifests regenerated successfully!'));
+      stdout.writeln(AnsiColors.dim('Tip: If you only modified files, use "./cpw new" to pack & increment.'));
+
+      return 0;
+    } on StateError catch (e) {
+      stderr.writeln(AnsiColors.error('Invalid state: $e'));
+      return 1;
+    } on Exception catch (e) {
+      stderr.writeln(AnsiColors.error('Failed: $e'));
+      return 1;
+    }
+  }
+
+  String? _parseTypeArg(List<String> args) {
+    final arg = args.firstWhere((a) => a.startsWith('--type='), orElse: () => '');
+    if (arg.isEmpty) return null;
+    final type = arg.substring(7).toLowerCase();
+    if (!['element', 'launcher', 'patcher'].contains(type)) {
+      throw ArgumentError('Unknown type: $type. Use element, launcher, or patcher.');
+    }
+    return type;
+  }
+}

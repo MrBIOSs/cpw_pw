@@ -6,15 +6,15 @@ import '../../../di/service_locator.dart' as di;
 import '../../security/security.dart';
 import '../setup_service.dart';
 
-/// Command ./cpw install.
+/// Command "./cpw install".
 final class InstallCommand {
   Future<int> execute({ required List<String> args }) async {
     final skipDb = args.contains('--skip-db');
     final skipKeys = args.contains('--skip-keys');
-    final dryRun = args.contains('--doctor');
+    final help = args.contains('--help') || args.contains('--h');
 
-    if (dryRun) {
-      stdout.writeln(AnsiColors.heading('@ Doctor mode — no changes will be made'));
+    if (help) {
+      stdout.writeln(AnsiColors.heading('Help mode — no changes will be made'));
       stdout.writeln();
     }
 
@@ -30,6 +30,16 @@ final class InstallCommand {
 
       stdout.writeln(AnsiColors.heading('Starting installation...'));
       stdout.writeln();
+
+      if (help) {
+        stdout.writeln(AnsiColors.dim('This command does:'));
+        stdout.writeln(AnsiColors.dim('  - Connects to the database.'));
+        stdout.writeln(AnsiColors.dim('  - Runs the install script if any required tables are missing.'));
+        stdout.writeln(AnsiColors.dim('  - Generates new 2048-bit RSA keys if they do not exist.'));
+
+        stdout.writeln();
+        return 0;
+      }
 
       final result = await setupService.initialize(
         skipKeys: skipKeys,

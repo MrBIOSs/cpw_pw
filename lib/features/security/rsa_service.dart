@@ -1,9 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
 import 'package:pointycastle/export.dart';
+
 import '../../core/crypto/crypto.dart';
 import '../../core/logger/logger_service.dart';
 import 'key_storage_interface.dart';
@@ -71,6 +74,49 @@ ${keys.publicKeyPem}
 
     secureRandom.seed(KeyParameter(seed));
     return secureRandom;
+  }
+
+
+
+  /// Signs a file with a private key and appends the signature to the end of the file.
+  /// Signature format: "-----BEGIN ELEMENT SIGNATURE-----\n<base64-signature>"
+  Future<void> signFile(String filePath) async {
+    final keys = await loadKeys();
+    final file = File(filePath);
+
+    if (!file.existsSync()) {
+      throw FileSystemException('File not found for signing', filePath);
+    }
+    final content = await file.readAsBytes();
+
+    final signature = _signWithMd5Rsa(content, keys.privateExponent, keys.modulus);
+    final signatureBase64 = base64Encode(signature).replaceAll('=', '');
+
+    final sink = file.openWrite(mode: FileMode.append);
+    sink.write('\n-----BEGIN ELEMENT SIGNATURE-----\n');
+
+    for (var i = 0; i < signatureBase64.length; i += 64) {
+      final end = i + 64 > signatureBase64.length ? signatureBase64.length : i + 64;
+      sink.write(signatureBase64.substring(i, end));
+      sink.write('\n');
+    }
+    await sink.flush();
+    await sink.close();
+
+    log.fine('Signed: $filePath');
+  }
+
+  Uint8List _signWithMd5Rsa(Uint8List data, BigInt privateExponent, BigInt modulus) {
+    final privateKey = RSAPrivateKey(modulus, privateExponent, null, null);
+    final signer = RSASigner(MD5Digest(), '0102082a864886f70d0205'); // DER prefix for MD5 OID
+
+    signer.init(
+      true,
+      PrivateKeyParameter<RSAPrivateKey>(privateKey),
+    );
+
+    final signature = signer.generateSignature(data);
+    return signature.bytes;
   }
 
   Future<RsaKeyPair> _generateKeyPair({required int keySize}) async {

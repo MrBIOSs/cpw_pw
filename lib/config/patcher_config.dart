@@ -46,4 +46,11 @@ final class PatcherConfig {
   /// Resolves a relative path relative to the application's base directory.
   String resolvePath(String relativePath) =>
       path.normalize(path.join(baseDir, relativePath));
+
+  int getMinRevForType(String type) => switch (type) {
+    'element' => minElementVer,
+    'launcher' => minLauncherVer,
+    'patcher' => minPatcherVer,
+    _ => throw ArgumentError('Unknown type: $type'),
+  };
 }

@@ -1,11 +1,10 @@
 import 'dart:io';
-
 import '../../../core/crypto/crypto.dart';
 import '../../../core/utils/ansi_colors.dart';
 import '../../../di/service_locator.dart' as di;
 import '../security.dart';
 
-/// Command ./cpw rsagen: regenerate RSA keys.
+/// Command "./cpw rsagen": regenerate RSA keys.
 final class RsagenCommand {
   /// Returns exit code: 0 = success, 1 = error.
   Future<int> execute({ required List<String> args }) async {

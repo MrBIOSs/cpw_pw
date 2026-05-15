@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:logging/logging.dart';
+
 import '../app/command_registry.dart';
 import '../config/config.dart';
 import '../core/database/database.dart';
@@ -18,7 +19,6 @@ Future<void> initServiceLocator({ String? configPath }) async {
   _registerLogger();
   _registerDatabase();
   _registerCrypto();
-  _registerRevisions();
   _registerFeatures();
   _registerCommands();
 }
@@ -50,33 +50,34 @@ void _registerCrypto() {
   final baseDir = getIt<PatcherConfig>().baseDir;
 
   getIt.registerLazySingleton<IKeyStorage>(() => FileKeyStorage(baseDir: baseDir));
-  getIt.registerLazySingleton<RsaService>(() => RsaService(storage: getIt()));
-}
-
-void _registerRevisions() {
-  final config = getIt<PatcherConfig>();
-
-  getIt.registerLazySingleton<RevisionService>(
-        () => RevisionService(
-      config: config,
-      dbService: getIt.isRegistered<DbService>() ? getIt<DbService>() : null,
-    ),
-  );
-
-  getIt.registerFactory<InitialCommand>(InitialCommand.new);
+  getIt.registerLazySingleton<RsaService>(() => RsaService(storage: getIt<IKeyStorage>()));
 }
 
 void _registerFeatures() {
-  getIt.registerLazySingleton(() => SetupService(
-    dbService: getIt(),
-    rsaService: getIt(),
-    config: getIt()
+  getIt.registerLazySingleton<SetupService>(() => SetupService(
+    dbService: getIt<DbService>(),
+    rsaService: getIt<RsaService>(),
+    config: getIt<PatcherConfig>()
+  ));
+
+  getIt.registerLazySingleton<RevisionService>(() => RevisionService(
+      config: getIt<PatcherConfig>(),
+      dbService: getIt.isRegistered<DbService>() ? getIt<DbService>() : null,
+  ));
+
+  getIt.registerLazySingleton<ManifestService>(() => ManifestService(
+      config: getIt<PatcherConfig>(),
+      dbService: getIt<DbService>(),
+      rsaService: getIt<RsaService>()
   ));
 }
 
 void _registerCommands() {
   getIt.registerFactory<InstallCommand>(InstallCommand.new);
   getIt.registerFactory<RsagenCommand>(RsagenCommand.new);
+  getIt.registerFactory<InitialCommand>(InitialCommand.new);
+
+  getIt.registerFactory<ListgenCommand>(ListgenCommand.new);
 
   getIt.registerSingleton<CommandRegistry>(_buildCommandRegistry());
 }
@@ -112,31 +113,16 @@ CommandRegistry _buildCommandRegistry() {
 
   registry.register((
   name: 'new',
-  description: 'Create next or given revision, creates lists',
-  usage: './cpw new [revision number]',
-  action: (args) async => 0,
-  ));
-
-  registry.register((
-  name: 'revision',
-  description: '',
-  usage: './cpw revision [revision number]',
+  description: 'Create next revision, creates lists',
+  usage: './cpw new',
   action: (args) async => 0,
   ));
 
   registry.register((
   name: 'listgen',
-  description: '',
-  usage: null,
-  action: (args) async => 0,
-  ));
-
-  registry.register((
-  name: 'listupdate',
-  description: 'Update lists only',
-  usage: null,
-  action: (args) async => 0,
-  ));
+  description: 'Full regeneration of files.md5',
+  usage: './cpw listgen [--type=element]',
+  action: (args) async => getIt<ListgenCommand>().execute(args: args)));
 
   return registry;
 }

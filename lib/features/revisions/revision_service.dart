@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:path/path.dart' as path;
-
 import '../../config/config.dart';
 import '../../core/database/database.dart';
 import '../../core/logger/logger_service.dart';
@@ -123,14 +121,14 @@ final class RevisionService {
   /// Returns the path to the output directory for the type.
   /// Example: /app/files/CPW/element/element
   String _getOutputDirectory(String type) =>
-      path.join(_config.baseDir, _config.patchPath, _config.patchCpwDir, type, type);
+      _config.resolvePath('${_config.patchPath}/${_config.patchCpwDir}/$type/$type');
 
   /// Returns the path to the input directory for the type.
   String _getInputDirectory(String type) =>
-      path.join(_config.baseDir, _config.patchPath, _config.patchNewDir, type);
+      _config.resolvePath('${_config.patchPath}/${_config.patchNewDir}/$type');
 
   /// Returns the path to the version file for the type.
   /// Example: /app/files/CPW/element/version
   String _getVersionFilePath(String type) =>
-      path.join(_config.baseDir, _config.patchPath, _config.patchCpwDir, type, 'version');
+      _config.resolvePath('${_config.patchPath}/${_config.patchCpwDir}/$type/version');
 }
