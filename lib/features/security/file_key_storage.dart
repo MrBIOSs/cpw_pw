@@ -30,6 +30,8 @@ final class FileKeyStorage implements IKeyStorage {
       final json = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
 
       return (
+      p: BigInt.parse(json['p'] as String),
+      q: BigInt.parse(json['q'] as String),
       modulus: BigInt.parse(json['modulus'] as String),
       publicExponent: BigInt.parse(json['publicExponent'] as String),
       privateExponent: BigInt.parse(json['privateExponent'] as String),
@@ -48,6 +50,8 @@ final class FileKeyStorage implements IKeyStorage {
     await Directory(path.dirname(_filePath)).create(recursive: true);
 
     final json = {
+      'p': keys.p.toString(),
+      'q': keys.q.toString(),
       'modulus': keys.modulus.toString(),
       'publicExponent': keys.publicExponent.toString(),
       'privateExponent': keys.privateExponent.toString(),

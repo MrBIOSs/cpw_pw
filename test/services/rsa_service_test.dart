@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -8,9 +9,12 @@ class MockKeyStorage extends Mock implements IKeyStorage {}
 void main() {
   late RsaService rsaService;
   late MockKeyStorage mockStorage;
+  late Directory tempDir;
 
   setUpAll(() {
     registerFallbackValue((
+    p: BigInt.zero,
+    q: BigInt.zero,
     modulus: BigInt.zero,
     publicExponent: BigInt.zero,
     privateExponent: BigInt.zero,
@@ -22,6 +26,13 @@ void main() {
   setUp(() {
     mockStorage = MockKeyStorage();
     rsaService = RsaService(storage: mockStorage);
+    tempDir = Directory.systemTemp.createTempSync('rsa_test_');
+  });
+
+  tearDown(() {
+    if (tempDir.existsSync()) {
+      tempDir.deleteSync(recursive: true);
+    }
   });
 
   group('RsaService - Unit Tests', () {
@@ -55,6 +66,8 @@ void main() {
 
     test('formatPublicKeyForCopy generates correct string format', () {
       final mockKeyPair = (
+      p: BigInt.from(103),
+      q: BigInt.from(119),
       modulus: BigInt.from(12345),
       publicExponent: BigInt.from(65537),
       privateExponent: BigInt.from(54321),
@@ -74,11 +87,32 @@ void main() {
 
       final result = await rsaService.generateAndSave(keySize: 512); // Small size for speed
 
+      expect(result.p, isNotNull);
+      expect(result.q, isNotNull);
       expect(result.modulus, isNotNull);
       expect(result.publicKeyPem, startsWith('-----BEGIN PUBLIC KEY-----'));
       expect(result.privateKeyPem, startsWith('-----BEGIN RSA PRIVATE KEY-----'));
 
       verify(() => mockStorage.save(any())).called(1);
     }, timeout: Timeout(Duration(seconds: 30)));
+
+    test('signFile successfully signs file and appends signature block', () async {
+      when(() => mockStorage.save(any())).thenAnswer((_) async => {});
+      final validKeys = await rsaService.generateAndSave(keySize: 512);
+
+      when(() => mockStorage.hasKeys()).thenReturn(true);
+      when(() => mockStorage.load()).thenAnswer((_) async => validKeys);
+
+      final testFile = File('${tempDir.path}/manifest.md5')
+        ..writeAsStringSync('some manifest content');
+
+      await rsaService.signFile(testFile.path);
+
+      final lines = testFile.readAsLinesSync();
+
+      expect(lines, contains('-----BEGIN ELEMENT SIGNATURE-----'));
+      expect(lines.first, equals('some manifest content'));
+      expect(lines.last.isNotEmpty, true);
+    }, timeout: const Timeout(Duration(seconds: 30)));
   });
 }

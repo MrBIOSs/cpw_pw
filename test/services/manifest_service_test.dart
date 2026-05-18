@@ -39,6 +39,8 @@ void main() {
     );
 
     when(() => mockRsa.signFile(any())).thenAnswer((_) async {});
+    when(() => mockDb.initialize()).thenAnswer((_) async {});
+    when(() => mockDb.dispose()).thenAnswer((_) async {});
 
     manifestService = ManifestService(
       config: mockConfig,

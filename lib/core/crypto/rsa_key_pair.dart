@@ -1,4 +1,6 @@
 typedef RsaKeyPair = ({
+BigInt p,
+BigInt q,
 BigInt modulus,           // n = p * q
 BigInt publicExponent,    // e (usually 65537)
 BigInt privateExponent,   // d

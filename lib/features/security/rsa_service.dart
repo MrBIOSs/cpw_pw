@@ -36,6 +36,8 @@ ${keys.publicKeyPem}
 ''';
   }
 
+  RsaKeyPair? _cachedKeys;
+
   /// [keySize] — key length in bits (default 2048).
   Future<RsaKeyPair> generateAndSave({int keySize = _keySize}) async {
     log.info('Generating RSA-$keySize key pair...');
@@ -76,12 +78,10 @@ ${keys.publicKeyPem}
     return secureRandom;
   }
 
-
-
   /// Signs a file with a private key and appends the signature to the end of the file.
   /// Signature format: "-----BEGIN ELEMENT SIGNATURE-----\n<base64-signature>"
   Future<void> signFile(String filePath) async {
-    final keys = await loadKeys();
+    final keys =  await _getOrLoadKeys();
     final file = File(filePath);
 
     if (!file.existsSync()) {
@@ -89,7 +89,7 @@ ${keys.publicKeyPem}
     }
     final content = await file.readAsBytes();
 
-    final signature = _signWithMd5Rsa(content, keys.privateExponent, keys.modulus);
+    final signature = _signWithMd5Rsa(data: content, key: keys);
     final signatureBase64 = base64Encode(signature).replaceAll('=', '');
 
     final sink = file.openWrite(mode: FileMode.append);
@@ -106,17 +106,40 @@ ${keys.publicKeyPem}
     log.fine('Signed: $filePath');
   }
 
-  Uint8List _signWithMd5Rsa(Uint8List data, BigInt privateExponent, BigInt modulus) {
-    final privateKey = RSAPrivateKey(modulus, privateExponent, null, null);
-    final signer = RSASigner(MD5Digest(), '0102082a864886f70d0205'); // DER prefix for MD5 OID
+  Future<RsaKeyPair> _getOrLoadKeys() async {
+    if (_cachedKeys != null) return _cachedKeys!;
 
-    signer.init(
+    _cachedKeys = await loadKeys();
+    return _cachedKeys!;
+  }
+
+  Uint8List _signWithMd5Rsa({
+    required Uint8List data,
+    required RsaKeyPair key,
+  }) {
+    final privateKey = RSAPrivateKey(key.modulus, key.privateExponent, key.p, key.q);
+    final md5 = MD5Digest();
+    final hash = md5.process(data);
+
+    final digestInfo = Uint8List.fromList([
+      0x30, 0x20, // SEQUENCE, length 32
+      0x30, 0x0c, //   SEQUENCE, length 12
+      0x06, 0x08, //     OID, length 8
+      0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x02, 0x05, // 1.2.840.113549.2.5
+      0x05, 0x00, //     NULL
+      0x04, 0x10, //   OCTET STRING, length 16 (MD5 hash)
+      ...hash,
+    ]);
+
+    final cipher = PKCS1Encoding(RSAEngine());
+
+    cipher.init(
       true,
       PrivateKeyParameter<RSAPrivateKey>(privateKey),
     );
 
-    final signature = signer.generateSignature(data);
-    return signature.bytes;
+    final signatureBytes = cipher.process(digestInfo);
+    return signatureBytes;
   }
 
   Future<RsaKeyPair> _generateKeyPair({required int keySize}) async {
@@ -131,6 +154,8 @@ ${keys.publicKeyPem}
     final privateKey = pair.privateKey;
 
     return (
+    p: privateKey.p!,
+    q: privateKey.q!,
     modulus: publicKey.modulus!,
     publicExponent: publicKey.exponent!,
     privateExponent: privateKey.privateExponent!,

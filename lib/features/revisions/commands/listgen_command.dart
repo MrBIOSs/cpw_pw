@@ -8,7 +8,7 @@ import '../revisions.dart';
 final class ListgenCommand {
   Future<int> execute({required List<String> args}) async {
     final type = _parseTypeArg(args);
-    final help = args.contains('--help') || args.contains('--h');
+    final help = args.contains('--help') || args.contains('-h');
 
     if (help) {
       stdout.writeln(AnsiColors.heading('Help — regenerate manifests only'));
@@ -21,6 +21,8 @@ final class ListgenCommand {
     try {
       final revisionService = di.getIt<RevisionService>();
       final manifestService = di.getIt<ManifestService>();
+
+      await revisionService.syncVersionFilesToDb();
       final state = await revisionService.getCurrentState();
 
       stdout.writeln(AnsiColors.heading('Regenerating manifests from current DB state...'));

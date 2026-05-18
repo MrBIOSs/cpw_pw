@@ -11,7 +11,7 @@ final class InstallCommand {
   Future<int> execute({ required List<String> args }) async {
     final skipDb = args.contains('--skip-db');
     final skipKeys = args.contains('--skip-keys');
-    final help = args.contains('--help') || args.contains('--h');
+    final help = args.contains('--help') || args.contains('-h');
 
     if (help) {
       stdout.writeln(AnsiColors.heading('Help mode — no changes will be made'));

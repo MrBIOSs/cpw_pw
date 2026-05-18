@@ -59,10 +59,11 @@ void _registerFeatures() {
     rsaService: getIt<RsaService>(),
     config: getIt<PatcherConfig>()
   ));
-
+  getIt.registerLazySingleton<PackerService>(PackerService.new);
   getIt.registerLazySingleton<RevisionService>(() => RevisionService(
       config: getIt<PatcherConfig>(),
-      dbService: getIt.isRegistered<DbService>() ? getIt<DbService>() : null,
+      dbService: getIt<DbService>(),
+      packer: getIt<PackerService>(),
   ));
 
   getIt.registerLazySingleton<ManifestService>(() => ManifestService(
@@ -76,7 +77,7 @@ void _registerCommands() {
   getIt.registerFactory<InstallCommand>(InstallCommand.new);
   getIt.registerFactory<RsagenCommand>(RsagenCommand.new);
   getIt.registerFactory<InitialCommand>(InitialCommand.new);
-
+  getIt.registerFactory<NewCommand>(NewCommand.new);
   getIt.registerFactory<ListgenCommand>(ListgenCommand.new);
 
   getIt.registerSingleton<CommandRegistry>(_buildCommandRegistry());
@@ -114,9 +115,8 @@ CommandRegistry _buildCommandRegistry() {
   registry.register((
   name: 'new',
   description: 'Create next revision, creates lists',
-  usage: './cpw new',
-  action: (args) async => 0,
-  ));
+  usage: null,
+  action: (args) async => getIt<NewCommand>().execute(args: args)));
 
   registry.register((
   name: 'listgen',

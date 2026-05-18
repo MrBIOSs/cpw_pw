@@ -3,6 +3,7 @@ import '../../../config/config.dart';
 import '../../../features/security/security.dart';
 import '../../core/database/database.dart';
 import '../../core/logger/logger_service.dart';
+import '../../core/utils/utilities.dart';
 import 'models/revision_state.dart';
 
 /// Service for generating manifests (files.md5), incremental patches (v-N.inc) and RSA signatures.
@@ -26,13 +27,17 @@ final class ManifestService {
     if (currentRev < minRev) {
       throw StateError('Current revision ($currentRev) is less than minimum ($minRev). Run `./cpw initial` first.');
     }
-    log.info('Generating manifests for $type (rev $minRev : $currentRev)...');
+    log.info('Generating manifests for $type (rev $minRev to $currentRev)...');
+
+    await _db.initialize();
 
     final result = await _db.execute(
       'SELECT md5, folder_base64, file_base64, revision, added, size FROM files WHERE type = :type ORDER BY revision, folder_base64, file_base64',
       {'type': type},
     );
     final files = result.rows;
+
+    await _db.dispose();
 
     if (files.isEmpty) {
       log.warning('No files found in DB for type=$type. Skipping manifest generation.');
@@ -96,8 +101,8 @@ final class ManifestService {
 
       String lastFolder = '';
       for (final f in files) {
-        final revision = f['revision'] as int;
-        final added = f['added'] as int;
+        final revision = Utils.parseInt(f['revision']);
+        final added = Utils.parseInt(f['added']);
         final folder = f['folder_base64'] as String;
         final file = f['file_base64'] as String;
         final md5 = f['md5'] as String;
@@ -145,9 +150,12 @@ final class ManifestService {
 
   int _calculateTotalSize(List<Map<String, dynamic>> files, int from, int to) {
     return files.where((f) {
-      final rev = f['revision'] as int;
+      final rev = Utils.parseInt(f['revision']);
       return rev > from && rev <= to;
-    }).fold<int>(0, (sum, f) => sum + (f['size'] as int));
+    }).fold<int>(0, (sum, f) {
+      final size = Utils.parseInt(f['size']);
+      return sum + size;
+    });
   }
 
   /// Directory for manifests and patches.
