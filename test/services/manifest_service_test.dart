@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
+
 import 'package:cpw_pw/config/config.dart';
 import 'package:cpw_pw/features/security/security.dart';
 import 'package:cpw_pw/core/database/database.dart';
@@ -24,6 +25,7 @@ void main() {
     mockConfig = PatcherConfig(
       baseDir: tempDir.path,
       dbHost: 'localhost',
+      dbPort: 3306,
       dbUser: 'root',
       dbPassword: 'pwd',
       dbName: 'test_db',

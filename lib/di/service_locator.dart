@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import '../app/command_registry.dart';
 import '../config/config.dart';
 import '../core/database/database.dart';
+import '../core/crypto/crypto.dart';
 import '../core/logger/logger_service.dart';
 import '../features/revisions/revisions.dart';
 import '../features/security/security.dart';
@@ -59,13 +60,15 @@ void _registerFeatures() {
     rsaService: getIt<RsaService>(),
     config: getIt<PatcherConfig>()
   ));
+  getIt.registerLazySingleton<BinaryPatcherService>(
+        () => BinaryPatcherService(keyStorage: getIt<IKeyStorage>()),
+  );
   getIt.registerLazySingleton<PackerService>(PackerService.new);
   getIt.registerLazySingleton<RevisionService>(() => RevisionService(
       config: getIt<PatcherConfig>(),
       dbService: getIt<DbService>(),
       packer: getIt<PackerService>(),
   ));
-
   getIt.registerLazySingleton<ManifestService>(() => ManifestService(
       config: getIt<PatcherConfig>(),
       dbService: getIt<DbService>(),
@@ -76,6 +79,7 @@ void _registerFeatures() {
 void _registerCommands() {
   getIt.registerFactory<InstallCommand>(InstallCommand.new);
   getIt.registerFactory<RsagenCommand>(RsagenCommand.new);
+  getIt.registerFactory<PatchCommand>(PatchCommand.new);
   getIt.registerFactory<InitialCommand>(InitialCommand.new);
   getIt.registerFactory<NewCommand>(NewCommand.new);
   getIt.registerFactory<ListgenCommand>(ListgenCommand.new);
@@ -102,9 +106,8 @@ CommandRegistry _buildCommandRegistry() {
   registry.register((
   name: 'x',
   description: 'Patch executable with public RSA key',
-  usage: './cpw x [executable]',
-  action: (args) async => 0,
-  ));
+  usage: './cpw x [executable] [--marker="..."]',
+  action: (args) async => getIt<PatchCommand>().execute(args: args)));
 
   registry.register((
   name: 'initial',

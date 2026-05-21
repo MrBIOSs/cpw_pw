@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../../config/config.dart';
-import '../../core/crypto/base64_path_encoder.dart';
+import '../../core/crypto/utils/base64_path_encoder.dart';
 import '../../core/database/database.dart';
 import '../../core/logger/logger_service.dart';
 import '../../core/utils/utilities.dart';

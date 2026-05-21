@@ -7,9 +7,9 @@ import '../revision_service.dart';
 /// Command "./cpw initial".
 final class InitialCommand {
   Future<int> execute({required List<String> args}) async {
-    final help = args.contains('--help') || args.contains('-h');
+    final isHelp = args.contains('--help') || args.contains('-h');
 
-    if (help) {
+    if (isHelp) {
       stdout.writeln(AnsiColors.heading('Help mode — no changes will be made'));
       stdout.writeln();
     }
@@ -20,7 +20,7 @@ final class InitialCommand {
       stdout.writeln(AnsiColors.heading('Creating initial revision...'));
       stdout.writeln();
 
-      if (help) {
+      if (isHelp) {
         final state = revisionService.getInitialState;
         stdout.writeln(AnsiColors.dim('Would initialize:'));
         stdout.writeln(AnsiColors.dim('  - element:   revision ${state.elementCurrentVer}'));

@@ -24,23 +24,19 @@ final class ConfigLoader {
   /// Format: CPW_<KEY_UPPER_SNAKE>
   static void _applyEnvOverrides(Map<String, String> config) {
     const envMap = {
-      'DB_HOST': 'mysql-host',
-      'DB_NAME': 'mysql-db',
-      'DB_USER': 'mysql-user',
-      'DB_PASSWORD': 'mysql-password',
-      'CPW_DB_HOST': 'db-host',
-      'CPW_DB_USER': 'db-user',
-      'CPW_DB_PASSWORD': 'db-password',
-      'CPW_DB_NAME': 'db-name',
-      'CPW_RSA_PRIVATE_KEY': 'rsa-private-key',
-      'CPW_RSA_PUBLIC_KEY': 'rsa-public-key',
+      'DB_HOST': 'db-host',
+      'DB_PORT': 'db-port',
+      'DB_NAME': 'db-name',
+      'DB_USER': 'db-user',
+      'DB_PASSWORD': 'db-password',
       'CPW_PATCH_PATH': 'patch-path',
     };
 
     for (final envVar in envMap.entries) {
       final envVal = Platform.environment[envVar.key];
-      if (envVal != null && envVal.isNotEmpty) {
-        config[envVar.value] = envVal;
+      final trimmedEnvVal = envVal?.trim();
+      if (trimmedEnvVal != null && trimmedEnvVal.isNotEmpty) {
+        config[envVar.value] = trimmedEnvVal;
       }
     }
   }
@@ -76,6 +72,7 @@ final class ConfigLoader {
 
       // DB
       dbHost: get('db-host', parse: (s) => s, defaultValue: 'localhost'),
+      dbPort: get('db-port', parse: int.parse, defaultValue: 3306),
       dbUser: get('db-user', parse: (s) => s),
       dbPassword: get('db-password', parse: (s) => s),
       dbName: get('db-name', parse: (s) => s),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
+
 import 'package:cpw_pw/core/database/database.dart';
 import 'package:cpw_pw/features/revisions/revisions.dart';
 import 'package:cpw_pw/config/config.dart';
@@ -22,6 +23,7 @@ void main() {
     realConfig = PatcherConfig(
       baseDir: tempDir.path,
       dbHost: 'localhost',
+      dbPort: 3306,
       dbUser: 'root',
       dbPassword: 'pwd',
       dbName: 'test_db',
@@ -201,9 +203,9 @@ void main() {
 
       final elementInputDir = realConfig.resolvePath('patch/new/element');
       final subFolder = Directory('$elementInputDir/data')..createSync(recursive: true);
-      final testFile = File('${subFolder.path}/config.ini')..writeAsStringSync('test data');
 
-      File('${elementInputDir}/.DS_Store').createSync();
+      File('${subFolder.path}/config.ini').writeAsStringSync('test data');
+      File('$elementInputDir/.DS_Store').createSync();
 
       final PackResult mockPackResult = (uncompressedSize: 9, packedSize: 5, md5: 'abc123md5');
       when(() => mockPacker.pack(any(), any())).thenAnswer((_) async => mockPackResult);

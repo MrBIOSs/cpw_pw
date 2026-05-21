@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
+
 import 'package:cpw_pw/core/database/database.dart';
 import 'package:cpw_pw/features/security/security.dart';
 import 'package:cpw_pw/features/setup/setup.dart';
 import 'package:cpw_pw/config/config.dart';
+import 'package:cpw_pw/core/crypto/crypto.dart';
 
 class MockDbService extends Mock implements DbService {}
 class MockRsaService extends Mock implements RsaService {}
@@ -20,7 +22,7 @@ void main() {
     tempDir = await Directory.systemTemp.createTemp('setup_test_');
     config = PatcherConfig(
       baseDir: tempDir.path,
-      dbHost: 'localhost', dbUser: 'u', dbPassword: 'p', dbName: 'n',
+      dbHost: 'localhost', dbPort: 3306, dbUser: 'u', dbPassword: 'p', dbName: 'n',
       patchPath: 'files', patchNewDir: 'new', patchCpwDir: 'cpw',
       minLauncherVer: 1, minPatcherVer: 1, minElementVer: 1,
       removeFolders: true, removeFiles: true, addSize: true,
@@ -97,7 +99,9 @@ void main() {
   });
 }
 
-dynamic _mockKeyPair() => (
+RsaKeyPair _mockKeyPair() => (
+q: BigInt.one,
+p: BigInt.one,
 modulus: BigInt.one,
 publicExponent: BigInt.one,
 privateExponent: BigInt.one,

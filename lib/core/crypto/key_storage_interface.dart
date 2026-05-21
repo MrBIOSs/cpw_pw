@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../../core/crypto/rsa_key_pair.dart';
+import 'models/rsa_key_pair.dart';
 
 abstract interface class IKeyStorage {
   /// Checks if there are any saved keys.

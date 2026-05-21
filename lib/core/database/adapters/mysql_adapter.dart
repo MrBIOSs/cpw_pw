@@ -27,7 +27,7 @@ final class MysqlAdapter implements IDatabase {
     try {
       _connection = await MySQLConnection.createConnection(
         host: _config.dbHost,
-        port: 3306,
+        port: _config.dbPort,
         userName: _config.dbUser,
         password: _config.dbPassword,
         databaseName: _config.dbName,

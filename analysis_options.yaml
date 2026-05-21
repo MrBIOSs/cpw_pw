@@ -40,7 +40,6 @@ analyzer:
     - "**/*.freezed.dart"
     - "build/**"
     - "**.mocks.dart"
-    - "test/**"
   errors:
     avoid_dynamic_calls: error
     unawaited_futures: error

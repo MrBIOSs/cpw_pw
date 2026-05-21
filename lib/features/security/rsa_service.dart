@@ -3,13 +3,10 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
-
-import 'package:asn1lib/asn1lib.dart';
 import 'package:pointycastle/export.dart';
 
 import '../../core/crypto/crypto.dart';
 import '../../core/logger/logger_service.dart';
-import 'key_storage_interface.dart';
 
 /// Service for generating and managing RSA keys.
 class RsaService {
@@ -22,7 +19,7 @@ class RsaService {
   final IKeyStorage _storage;
   final SecureRandom _random;
 
-  static const _keySize = 2048;
+  static const _keySize = 1024;
   static final _publicExponent = BigInt.from(65537);
 
   /// Returns the public key in a format convenient for copying.
@@ -38,7 +35,7 @@ ${keys.publicKeyPem}
 
   RsaKeyPair? _cachedKeys;
 
-  /// [keySize] — key length in bits (default 2048).
+  /// [keySize] — key length in bits (default 1024).
   Future<RsaKeyPair> generateAndSave({int keySize = _keySize}) async {
     log.info('Generating RSA-$keySize key pair...');
 
@@ -166,64 +163,13 @@ ${keys.publicKeyPem}
 
   /// Encodes the public key in PEM (SubjectPublicKeyInfo, PKCS#8).
   String _encodePublicKeyPem(RSAPublicKey key) {
-    final der = _encodeSubjectPublicKeyInfo(key);
+    final der = RsaUtils.encodeSubjectPublicKeyInfo(key);
     return RsaUtils.toPem('PUBLIC KEY', der);
   }
 
   /// Encodes the private key in PEM (RSAPrivateKey, PKCS#1).
   String _encodePrivateKeyPem(RSAPrivateKey key) {
-    final der = _encodeRsaPrivateKey(key);
+    final der = RsaUtils.encodeRsaPrivateKey(key);
     return RsaUtils.toPem('RSA PRIVATE KEY', der);
-  }
-
-  /// Encodes the public key in DER (SubjectPublicKeyInfo).
-  /// Structure:
-  /// SEQUENCE {
-  ///   SEQUENCE { algorithm OID, NULL }
-  ///   BIT STRING { SEQUENCE { modulus INTEGER, exponent INTEGER } }
-  /// }
-  Uint8List _encodeSubjectPublicKeyInfo(RSAPublicKey key) {
-    final rsaSeq = ASN1Sequence();
-    rsaSeq.add(ASN1Integer(key.modulus!));
-    rsaSeq.add(ASN1Integer(key.exponent!));
-
-    final algoSeq = ASN1Sequence();
-    algoSeq.add(ASN1ObjectIdentifier.fromComponentString('1.2.840.113549.1.1.1'));
-    algoSeq.add(ASN1Null());
-
-    final spki = ASN1Sequence();
-    spki.add(algoSeq);
-    spki.add(ASN1BitString(rsaSeq.encodedBytes));
-
-    return spki.encodedBytes;
-  }
-
-  /// Encodes the private key in DER (RSAPrivateKey, PKCS#1).
-  /// Structure:
-  /// SEQUENCE {
-  ///   version INTEGER,
-  ///   modulus INTEGER, publicExponent INTEGER, privateExponent INTEGER,
-  ///   prime1 INTEGER, prime2 INTEGER,
-  ///   exponent1 INTEGER, exponent2 INTEGER, coefficient INTEGER
-  /// }
-  Uint8List _encodeRsaPrivateKey(RSAPrivateKey key) {
-    final p = key.p!;
-    final q = key.q!;
-    final dP = key.privateExponent! % (p - BigInt.one); // d mod (p-1)
-    final dQ = key.privateExponent! % (q - BigInt.one); // d mod (q-1)
-    final qInv = RsaUtils.modInverse(q, p); // q^-1 mod p
-    final seq = ASN1Sequence();
-
-    seq.add(ASN1Integer(BigInt.zero));
-    seq.add(ASN1Integer(key.modulus!));           // n
-    seq.add(ASN1Integer(key.exponent!));          // e
-    seq.add(ASN1Integer(key.privateExponent!));   // d
-    seq.add(ASN1Integer(p));                      // p
-    seq.add(ASN1Integer(q));                      // q
-    seq.add(ASN1Integer(dP));                     // dP
-    seq.add(ASN1Integer(dQ));                     // dQ
-    seq.add(ASN1Integer(qInv));                   // qInv
-
-    return seq.encodedBytes;
   }
 }

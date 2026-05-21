@@ -11,9 +11,9 @@ final class InstallCommand {
   Future<int> execute({ required List<String> args }) async {
     final skipDb = args.contains('--skip-db');
     final skipKeys = args.contains('--skip-keys');
-    final help = args.contains('--help') || args.contains('-h');
+    final isHelp = args.contains('--help') || args.contains('-h');
 
-    if (help) {
+    if (isHelp) {
       stdout.writeln(AnsiColors.heading('Help mode — no changes will be made'));
       stdout.writeln();
     }
@@ -31,7 +31,7 @@ final class InstallCommand {
       stdout.writeln(AnsiColors.heading('Starting installation...'));
       stdout.writeln();
 
-      if (help) {
+      if (isHelp) {
         stdout.writeln(AnsiColors.dim('This command does:'));
         stdout.writeln(AnsiColors.dim('  - Connects to the database.'));
         stdout.writeln(AnsiColors.dim('  - Runs the install script if any required tables are missing.'));

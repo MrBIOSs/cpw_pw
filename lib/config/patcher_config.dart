@@ -6,6 +6,7 @@ final class PatcherConfig {
   const PatcherConfig({
     required this.baseDir,
     required this.dbHost,
+    required this.dbPort,
     required this.dbUser,
     required this.dbPassword,
     required this.dbName,
@@ -24,6 +25,7 @@ final class PatcherConfig {
 
   // DB
   final String dbHost;
+  final int dbPort;
   final String dbUser;
   final String dbPassword;
   final String dbName;

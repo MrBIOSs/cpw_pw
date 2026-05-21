@@ -7,11 +7,11 @@ import '../revisions.dart';
 /// Command "./cpw new".
 final class NewCommand {
   Future<int> execute({required List<String> args}) async {
-    final force = args.contains('--force');
-    final help = args.contains('--help') || args.contains('-h');
+    final isForce = args.contains('--force');
+    final isHelp = args.contains('--help') || args.contains('-h');
     final skipManifests = args.contains('--skip-manifests');
 
-    if (help) {
+    if (isHelp) {
       stdout.writeln(AnsiColors.heading('Help — next revision'));
       stdout.writeln(AnsiColors.dim('  - Pack files: files/new/* to files/CPW/*'));
       stdout.writeln(AnsiColors.dim('  - Update database metadata'));
@@ -21,7 +21,7 @@ final class NewCommand {
       return 0;
     }
 
-    if (force) {
+    if (isForce) {
       stdout.writeln(AnsiColors.warning(
         'Force mode: will overwrite files from a potentially failed previous run.',
       ));
@@ -41,7 +41,7 @@ final class NewCommand {
       stdout.writeln();
 
       await revisionService.syncVersionFilesToDb();
-      final state = await revisionService.createNext(force: force);
+      final state = await revisionService.createNext(force: isForce);
       stdout.writeln(AnsiColors.success('  Files packed & database updated'));
 
       if (!skipManifests) {

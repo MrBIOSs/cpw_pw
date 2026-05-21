@@ -8,9 +8,9 @@ import '../revisions.dart';
 final class ListgenCommand {
   Future<int> execute({required List<String> args}) async {
     final type = _parseTypeArg(args);
-    final help = args.contains('--help') || args.contains('-h');
+    final isHelp = args.contains('--help') || args.contains('-h');
 
-    if (help) {
+    if (isHelp) {
       stdout.writeln(AnsiColors.heading('Help — regenerate manifests only'));
       stdout.writeln(AnsiColors.dim('  - Read current state from DB/files'));
       stdout.writeln(AnsiColors.dim('  - Rebuild files.md5 & v-N.inc'));

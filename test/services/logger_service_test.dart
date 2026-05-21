@@ -14,7 +14,7 @@ void main() {
 
   tearDown(() async {
     final dir = Directory(testLogDir);
-    if (await dir.exists()) {
+    if (dir.existsSync()) {
       await dir.delete(recursive: true);
     }
   });
@@ -33,9 +33,9 @@ void main() {
       final logger = LoggerService(logDir: testLogDir);
       await logger.initialize();
 
-      expect(await Directory(testLogDir).exists(), isTrue);
-      expect(await File(p.join(testLogDir, 'console.log')).exists(), isTrue);
-      expect(await File(p.join(testLogDir, 'errors.log')).exists(), isTrue);
+      expect(Directory(testLogDir).existsSync(), isTrue);
+      expect(File(p.join(testLogDir, 'console.log')).existsSync(), isTrue);
+      expect(File(p.join(testLogDir, 'errors.log')).existsSync(), isTrue);
 
       await logger.dispose();
     });
@@ -47,7 +47,7 @@ void main() {
       final testMessage = 'Test info message';
       Logger('TestLogger').info(testMessage);
 
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future<void>.delayed(Duration(milliseconds: 100));
       await logger.dispose();
 
       final consoleLog = await File(p.join(testLogDir, 'console.log')).readAsString();
@@ -63,7 +63,7 @@ void main() {
       final errorMessage = 'Critical failure';
       Logger('ErrorLogger').severe(errorMessage);
 
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future<void>.delayed(Duration(milliseconds: 100));
       await logger.dispose();
 
       final errorLog = await File(p.join(testLogDir, 'errors.log')).readAsString();
@@ -77,7 +77,7 @@ void main() {
 
       Logger('TestLogger').info('This should not be logged');
 
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future<void>.delayed(Duration(milliseconds: 100));
       await logger.dispose();
 
       final consoleLog = await File(p.join(testLogDir, 'console.log')).readAsString();

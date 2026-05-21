@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import '../../core/crypto/crypto.dart';
-import 'key_storage_interface.dart';
+import 'crypto.dart';
 
 /// Storing keys in a local JSON file.
 /// Format: { "key": "value", }

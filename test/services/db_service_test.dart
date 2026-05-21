@@ -20,6 +20,7 @@ void main() {
     mockConfig = PatcherConfig(
       baseDir: tempDir.path,
       dbHost: 'localhost',
+      dbPort: 3306,
       dbUser: 'user',
       dbPassword: 'password',
       dbName: 'test_db',

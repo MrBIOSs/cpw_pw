@@ -73,7 +73,7 @@ final class SetupService {
           result.addStep('RSA keys already exist');
         } else {
           await _rsaService.generateAndSave();
-          result.addStep('RSA keys generated (2048-bit)');
+          result.addStep('RSA keys generated (1024-bit)');
         }
       } on KeyGenerationException catch (e) {
         log.severe('Key generation failed', e);
