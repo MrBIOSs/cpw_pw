@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -77,26 +76,28 @@ void main() {
       );
     });
 
-    test('Throws a StateError if there is not enough space in the file after the marker for 219 bytes.',
+    test('Throws a StateError if there is not enough space between BEGIN and END markers.',
             () async {
-      const marker = '-----BEGIN PUBLIC KEY-----';
+      const startMarker = '-----BEGIN PUBLIC KEY-----';
+      const endMarker = '-----END PUBLIC KEY-----';
       final fakeExe = File('${tempDir.path}/launcher.exe')
-        ..writeAsStringSync('$marker\n');
+        ..writeAsStringSync('$startMarker\n${'0' * 50}\n$endMarker');
 
       expect(
             () => patcherService.patchExecutable(executablePath: fakeExe.path),
         throwsA(isA<StateError>().having(
               (e) => e.message,
           'message',
-          contains('Not enough space in executable'),
+          contains('Not enough space between PEM markers'),
         )),
       );
     });
 
     test('In isHelp: true mode, returns the correct PatchResult, but does not modify the file.',
             () async {
-      const marker = '-----BEGIN PUBLIC KEY-----';
-      final fileContent = '$marker\n${'0' * 250}';
+      const startMarker = '-----BEGIN PUBLIC KEY-----';
+      const endMarker = '-----END PUBLIC KEY-----';
+      final fileContent = '$startMarker\n${'0' * 250}\n$endMarker';
       final fakeExe = File('${tempDir.path}/launcher.exe')..writeAsStringSync(fileContent);
       final result = await patcherService.patchExecutable(
         executablePath: fakeExe.path,
@@ -105,7 +106,7 @@ void main() {
 
       expect(result.patched, isFalse);
       expect(result.keySize, equals(219));
-      expect(result.originalSize, equals(marker.length));
+      expect(result.originalSize, equals(startMarker.length));
       // Marker position (0) + marker length (26) + 1 byte '\n' = 27
       expect(result.markerOffset, equals(27));
       expect(fakeExe.readAsStringSync(), equals(fileContent));
@@ -113,38 +114,47 @@ void main() {
 
     test('Successfully performs key injection and successfully passes verification verify: true',
             () async {
-      const marker = '-----BEGIN PUBLIC KEY-----';
-      final markerBytes = utf8.encode(marker);
-      final totalSize = markerBytes.length + 1 + 300;
-      final dummyBytes = Uint8List(totalSize)
-        ..setRange(0, markerBytes.length, markerBytes);
+      const startMarker = '-----BEGIN PUBLIC KEY-----';
+      const endMarker = '-----END PUBLIC KEY-----';
+      const zeroCount  = 250;
 
-      dummyBytes[markerBytes.length] = utf8.encode('\n').first;
+      final fileContent = '$startMarker\n${'0' * zeroCount }\n$endMarker';
+      final fakeExe = File('${tempDir.path}/launcher.exe')..writeAsStringSync(fileContent);
 
-      final fakeExe = File('${tempDir.path}/launcher.exe')..writeAsBytesSync(dummyBytes);
       final result = await patcherService.patchExecutable(
         executablePath: fakeExe.path,
       );
 
       expect(result.patched, isTrue);
-      expect(result.markerOffset, equals(markerBytes.length + 1));
+      expect(result.markerOffset, equals(startMarker.length + 1));
       expect(result.keySize, equals(219));
 
       final patchedBytes = fakeExe.readAsBytesSync();
-      final readMarker = utf8.decode(patchedBytes.sublist(0, markerBytes.length));
-      expect(readMarker, equals(marker));
+      final patchedString = utf8.decode(patchedBytes);
 
-      final injectedBytes = patchedBytes.sublist(result.markerOffset, result.markerOffset + 219);
+      expect(patchedString.startsWith(startMarker), isTrue);
+      expect(patchedString.endsWith(endMarker), isTrue);
+
+      final endOffset = patchedString.indexOf(endMarker);
+      final actualAvailableSpace = endOffset - result.markerOffset;
+
+      final injectedBytes = patchedBytes.sublist(result.markerOffset, result.markerOffset + actualAvailableSpace);
       final injectedString = utf8.decode(injectedBytes);
+      final keyString = injectedString.substring(0, 219);
 
-      expect(injectedString.contains('\n'), isTrue);
+      expect(keyString.contains('\n'), isTrue);
 
       final lines = injectedString.split('\n');
       expect(lines.length, equals(4));
       expect(lines[0].length, equals(64));
       expect(lines[1].length, equals(64));
       expect(lines[2].length, equals(64));
-      expect(lines[3].length, equals(24));
+      expect(lines[3].trim().length, equals(24));
+
+      final paddingString = injectedString.substring(219);
+      expect(paddingString.length, equals(actualAvailableSpace - 219));
+      expect(paddingString.trim(), isEmpty);
+      expect(paddingString.codeUnits.every((code) => code == 32), isTrue);
     });
   });
 }

@@ -27,7 +27,7 @@ final class SetupService {
 
     if (errors.isNotEmpty) {
       log.severe('Validation failed: ${errors.join('; ')}');
-      return result.completed(success: false, errors: errors);
+      return result..completed(success: false, errors: errors);
     }
     result.addStep('Environment validated');
 
@@ -49,13 +49,13 @@ final class SetupService {
         }
       } on DatabaseConnectionException catch (e) {
         log.severe('Database connection failed', e);
-        return result.completed(
+        return result..completed(
             success: false,
             errors: ['Cannot connect to database: ${e.message}']
         );
       } on DatabaseScriptException catch (e) {
         log.severe('Install script failed at query #${e.failedAtLine}', e);
-        return result.completed(
+        return result..completed(
             success: false,
             errors: ['Database initialization failed: ${e.message}']
         );
@@ -77,7 +77,7 @@ final class SetupService {
         }
       } on KeyGenerationException catch (e) {
         log.severe('Key generation failed', e);
-        return result.completed(
+        return result..completed(
             success: false,
             errors: ['Failed to generate RSA keys: ${e.message}']
         );
@@ -85,7 +85,7 @@ final class SetupService {
     } else {
       result.addStep('Key generation skipped (--skip-keys)');
     }
-    return result.completed(success: true);
+    return result..completed(success: true);
   }
 }
 
@@ -106,11 +106,10 @@ final class SetupResult {
     _steps.add(message);
   }
 
-  SetupResult completed({required bool success, List<String> errors = const []}) {
+  void completed({required bool success, List<String> errors = const []}) {
     _success = success;
     _errors.addAll(errors);
     _completed = true;
-    return this;
   }
 
   bool get isSuccess => _success;

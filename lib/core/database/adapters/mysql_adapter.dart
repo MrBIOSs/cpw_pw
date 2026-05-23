@@ -82,7 +82,7 @@ final class MysqlAdapter implements IDatabase {
       }) async {
     _ensureConnected();
 
-    final queries = _splitScript(script);
+    final queries = SqlScriptParser.splitQueries(script);
     final results = <QueryResult>[];
     var successCount = 0;
 
@@ -125,37 +125,6 @@ final class MysqlAdapter implements IDatabase {
         cause: e,
       );
     }
-  }
-
-  /// Splits by ';', removes comments.
-  /// For complex scripts (strings with ';', stored procedures), a full-fledged SQL parser is required.
-  List<String> _splitScript(String script) {
-    final queries = <String>[];
-    final lines = script.split('\n');
-    final buffer = StringBuffer();
-
-    for (final line in lines) {
-      final trimmed = line.trim();
-      if (trimmed.startsWith('--') || trimmed.startsWith('#') || trimmed.startsWith('/*')) {
-        continue;
-      }
-      buffer.writeln(line);
-
-      if (trimmed.endsWith(';')) {
-        final query = buffer.toString().trim();
-        if (query.isNotEmpty && query != ';') {
-          queries.add(query);
-        }
-        buffer.clear();
-      }
-    }
-
-    final remaining = buffer.toString().trim();
-    if (remaining.isNotEmpty) {
-      queries.add(remaining);
-    }
-
-    return queries;
   }
 
   void _ensureConnected() {

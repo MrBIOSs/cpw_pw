@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:path/path.dart' as path;
 import 'package:cpw_pw/config/config.dart';
 import 'package:cpw_pw/core/logger/logger_service.dart';
 import 'package:cpw_pw/core/database/database.dart';
@@ -29,7 +30,8 @@ class DbService {
 
   /// Executes the initialization script, automatically selecting the version for the current database.
   Future<ScriptResult> runInstallScript({String? customPath}) async {
-    final scriptPath = customPath ?? _config.resolvePath('config/install_${type.name}.sql');
+    final scriptPath = customPath ??
+        _config.resolvePath(path.join('config', 'install_${type.name}.sql'));
     final scriptFile = File(scriptPath);
 
     if (!scriptFile.existsSync()) {

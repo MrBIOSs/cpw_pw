@@ -6,6 +6,8 @@ import 'package:cpw_pw/features/revisions/revision_service.dart';
 
 /// Command "./cpw initial".
 final class InitialCommand {
+  final PatcherConfig _config = di.getIt<PatcherConfig>();
+
   Future<int> execute({required List<String> args}) async {
     final isHelp = args.contains('--help') || args.contains('-h');
 
@@ -33,8 +35,8 @@ final class InitialCommand {
           ..writeln(AnsiColors.dim('Would create directories:'));
         for (final type in ['element', 'launcher', 'patcher']) {
           stdout
-            ..writeln(AnsiColors.dim('  - ${_getOutputDir(type)}/'))
-            ..writeln(AnsiColors.dim('  - ${_getInputDir(type)}/'));
+            ..writeln(AnsiColors.dim('  - ${_config.resolveSubDir(_config.patchCpwDir, type)}/'))
+            ..writeln(AnsiColors.dim('  - ${_config.resolveSubDir(_config.patchNewDir, type)}/'));
         }
         stdout.writeln();
         return 0;
@@ -64,15 +66,5 @@ final class InitialCommand {
       stderr.writeln(AnsiColors.error('Unexpected error: $e'));
       return 1;
     }
-  }
-
-  String _getOutputDir(String type) {
-    final config = di.getIt<PatcherConfig>();
-    return config.resolvePath('${config.patchPath}/${config.patchCpwDir}/$type/');
-  }
-
-  String _getInputDir(String type) {
-    final config = di.getIt<PatcherConfig>();
-    return config.resolvePath('${config.patchPath}/${config.patchNewDir}/$type/');
   }
 }

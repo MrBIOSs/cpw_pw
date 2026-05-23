@@ -232,7 +232,7 @@ void main() {
               .having((m) => m['md5'], 'md5', 'abc123md5')
               .having((m) => m['folder'], 'folder', 'data')
               .having((m) => m['file'], 'file', 'config.ini')
-              .having((m) => m['added'], 'added', 7)), // 6 + 1 = 7
+              .having((m) => m['added'], 'added', 6)), // 5 + 1 = 6
       )).called(1);
 
       final versionFile = File(realConfig.resolvePath('patch/cpw/element/version'));

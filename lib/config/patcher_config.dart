@@ -1,3 +1,4 @@
+import 'package:path/path.dart' as path;
 import 'package:cpw_pw/core/utils/safe_path.dart';
 
 /// Immutable patcher configuration.
@@ -48,6 +49,11 @@ final class PatcherConfig {
   /// Resolves a relative path relative to the application's base directory.
   String resolvePath(String relativePath) =>
       SafePathResolver.resolveInsideBase(baseDir: baseDir, unsafePath: relativePath);
+
+  String resolveSubDir(String subDir, String type) {
+    final relative = path.join(patchPath, subDir, type);
+    return resolvePath(relative);
+  }
 
   int getMinRevForType(String type) => switch (type) {
     'element' => minElementVer,

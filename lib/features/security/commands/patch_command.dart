@@ -32,7 +32,7 @@ final class PatchCommand {
 
       final result = await patcher.patchExecutable(
         executablePath: executablePath,
-        marker: marker,
+        startMarker: marker,
         isHelp: isHelp,
         verify: !isHelp,
       );

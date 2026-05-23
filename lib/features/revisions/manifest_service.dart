@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:path/path.dart' as path;
 import 'package:cpw_pw/config/config.dart';
 import 'package:cpw_pw/features/security/security.dart';
 import 'package:cpw_pw/core/database/database.dart';
@@ -127,7 +128,7 @@ final class ManifestService {
 
   /// Removes old .inc files.
   Future<void> _cleanupOldPatches(String type, int minRev, int currentRev) async {
-    final dir = Directory(_getOutputDir(type));
+    final dir = Directory(_config.resolveSubDir(_config.patchCpwDir, type));
     if (!dir.existsSync()) return;
 
     await for (final entity in dir.list()) {
@@ -157,21 +158,16 @@ final class ManifestService {
     });
   }
 
-  /// Directory for manifests and patches.
-  /// Example: /app/files/CPW/element
-  String _getOutputDir(String type) =>
-      _config.resolvePath('${_config.patchPath}/${_config.patchCpwDir}/$type');
-
   /// Path to incremental patch.
   /// Example: /app/files/CPW/element/v-3.inc
   String _getPatchPath(String type, int diff) =>
-      _config.resolvePath('${_getOutputDir(type)}/v-$diff.inc');
+      path.join(_config.resolveSubDir(_config.patchCpwDir, type), 'v-$diff.inc');
 
   /// Example: /app/files/CPW/element/files.md5
   String _getManifestPath(String type) =>
-      _config.resolvePath('${_getOutputDir(type)}/files.md5');
+      path.join(_config.resolveSubDir(_config.patchCpwDir, type), 'files.md5');
 
   /// Example: /app/files/CPW/element/version
   String _getVersionPath(String type) =>
-      _config.resolvePath('${_getOutputDir(type)}/version');
+      path.join(_config.resolveSubDir(_config.patchCpwDir, type), 'version');
 }

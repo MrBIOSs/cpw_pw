@@ -78,25 +78,28 @@ final class RevisionService {
   /// Packs files, writes to the database, increments the version.
   Future<RevisionState> createNext({bool force = false}) async {
     final current = await getCurrentState();
-    final nextState = (
+    final nextState = force
+        ? current
+        :(
     elementCurrentVer: current.elementCurrentVer + 1,
     launcherCurrentVer: current.launcherCurrentVer + 1,
     patcherCurrentVer: current.patcherCurrentVer + 1,
     );
 
-    log.info('Creating next revision: ${current.elementCurrentVer} to ${nextState.elementCurrentVer}');
+    log.info(force
+        ? 'Re-creating current revision: ${current.elementCurrentVer}'
+        : 'Creating next revision: ${current.elementCurrentVer} to ${nextState.elementCurrentVer}');
 
     await _dbService.initialize();
 
     try {
       for (final type in ['element', 'launcher', 'patcher']) {
-        await _packFiles(type, nextState);
+        await _packFiles(type, nextState, force: force);
       }
       await _writeVersionFiles(nextState);
     } finally {
       await _dbService.dispose();
     }
-    await _writeVersionFiles(nextState);
 
     log.info('Next revision prepared: ${nextState.elementCurrentVer}'
         '/${nextState.launcherCurrentVer}/${nextState.patcherCurrentVer}');
@@ -141,15 +144,22 @@ final class RevisionService {
   }
 
   /// Packs files from new/{type}/ to CPW/{type}/{type}/ and writes metadata to the database.
-  Future<void> _packFiles(String type, RevisionState state) async {
-    final sourceDir = _getInputDirectory(type);
+  Future<void> _packFiles(String type, RevisionState state, {bool force = false}) async {
+    final sourceDir = _config.resolveSubDir(_config.patchNewDir, type);
     final targetDir = _getOutputDirectory(type);
-    final nextRev = state.getCurrent(type) + 1;
+    final nextRev = state.getCurrent(type);
     final source = Directory(sourceDir);
 
     if (!source.existsSync()) {
       log.fine('Source directory empty: $sourceDir');
       return;
+    }
+
+    if (force) {
+      await _dbService.execute(
+        'DELETE FROM files WHERE type = :type AND revision = :revision',
+        {'type': type, 'revision': nextRev},
+      );
     }
 
     await for (final entity in source.list(recursive: true)) {
@@ -214,7 +224,7 @@ final class RevisionService {
   /// Creates an input directory structure (new/{type}/).
   Future<void> _createInputStructure() async {
     for (final type in ['element', 'launcher', 'patcher']) {
-      final inputDir = _getInputDirectory(type);
+      final inputDir = _config.resolveSubDir(_config.patchNewDir, type);
       final dir = Directory(inputDir);
 
       if (dir.existsSync()) {
@@ -262,21 +272,19 @@ final class RevisionService {
   /// Returns the path to the output directory for the type.
   /// Example: /app/files/CPW/element/element
   String _getOutputDirectory(String type) =>
-      _config.resolvePath('${_config.patchPath}/${_config.patchCpwDir}/$type/$type');
-
-  /// Returns the path to the input directory for the type.
-  String _getInputDirectory(String type) =>
-      _config.resolvePath('${_config.patchPath}/${_config.patchNewDir}/$type');
+      _config.resolveSubDir(_config.patchCpwDir, path.join(type, type));
 
   /// Returns the path to the version file for the type.
   /// Example: /app/files/CPW/element/version
-  String _getVersionFilePath(String type) =>
-      _config.resolvePath('${_config.patchPath}/${_config.patchCpwDir}/$type/version');
+  String _getVersionFilePath(String type) {
+    final parentDir = _config.resolveSubDir(_config.patchCpwDir, type);
+    return path.join(parentDir, 'version');
+  }
 
   /// Converts an absolute file path to a relative one.
   /// Example: /app/files/new/element/data/config.ini to data/config.ini
   String _toRelativePath(String fullPath, String type) {
-    final sourceDir = _getInputDirectory(type);
+    final sourceDir = _config.resolveSubDir(_config.patchNewDir, type);
     return path.relative(fullPath, from: sourceDir);
   }
 }

@@ -23,11 +23,12 @@ final class BinaryPatcherService {
 
   /// Patch the executable file, replacing the marker with a public RSA key.
   /// [executablePath] — path to the binary.
-  /// [marker] — unique placeholder string in the source code.
+  /// [startMarker] — unique placeholder string in the source code.
   /// [verify] — read the file after writing and verify its integrity.
   Future<PatchResult> patchExecutable({
     required String executablePath,
-    String marker = '-----BEGIN PUBLIC KEY-----',
+    String startMarker = '-----BEGIN PUBLIC KEY-----',
+    String endMarker = '-----END PUBLIC KEY-----',
     bool isHelp = false,
     bool verify = true,
   }) async {
@@ -47,26 +48,39 @@ final class BinaryPatcherService {
     log.fine('Serialized key size: ${keyData.length} bytes');
 
     final originalBytes = await file.readAsBytes();
-    final markerBytes = utf8.encode(marker);
-    final markerOffset = _findBytePattern(originalBytes, markerBytes);
+    final startBytes = utf8.encode(startMarker);
+    final endBytes = utf8.encode(endMarker);
 
-    if (markerOffset == -1) {
+    final startOffset = _findBytePattern(originalBytes, startBytes);
+    final endOffset = _findBytePattern(originalBytes, endBytes);
+
+    if (startOffset == -1 || endOffset == -1) {
       throw StateError(
-          'Marker "$marker" not found in executable. '
-              'Ensure the binary contains the exact placeholder string in its source code.'
+          'PEM placeholders not found in executable. '
+              'Ensure the binary contains intact BEGIN and END public key markers.'
       );
     }
 
-    final injectionOffset = markerOffset + markerBytes.length + 1;
-    if (injectionOffset + _fixedKeySize > originalBytes.length) {
+    final injectionOffset = startOffset + startBytes.length + 1;
+    final availableSpace = endOffset - injectionOffset;
+
+    if (availableSpace < _fixedKeySize) {
       throw StateError(
-          'Not enough space in executable to inject the key after the marker.'
+          'Not enough space between PEM markers to inject the key. '
+              'Available: $availableSpace bytes, Required: $_fixedKeySize bytes.'
+      );
+    }
+
+    if (keyData.length > availableSpace) {
+      throw StateError(
+          'Serialized key (${keyData.length} bytes) exceeds available '
+          'space inside the executable ($availableSpace bytes).'
       );
     }
 
     final result = (
     markerOffset: injectionOffset,
-    originalSize: markerBytes.length,
+    originalSize: startBytes.length,
     keySize: keyData.length,
     patched: !isHelp,
     );
@@ -77,20 +91,31 @@ final class BinaryPatcherService {
     }
 
     final patchedBytes = Uint8List.fromList(originalBytes);
-    final paddedKey = _padToFixedFormat(keyData);
+    final paddedKey = Uint8List(availableSpace)
+      ..fillRange(0, availableSpace, 32)
+      ..setAll(0, keyData);
 
     patchedBytes.setRange(
         injectionOffset,
-        injectionOffset + _fixedKeySize,
+        injectionOffset + availableSpace,
         paddedKey
     );
 
-    await file.writeAsBytes(patchedBytes);
+    final tempFile = File('${file.path}.tmp');
+    try {
+      await tempFile.writeAsBytes(patchedBytes, flush: true);
+      await tempFile.rename(file.path);
+    } catch (e) {
+      if (tempFile.existsSync()) {
+        await tempFile.delete();
+      }
+      rethrow;
+    }
     log.info('Patched executable at offset $injectionOffset');
 
     if (verify) {
       final verifyBytes = await file.readAsBytes();
-      final embedded = verifyBytes.sublist(injectionOffset, injectionOffset + _fixedKeySize);
+      final embedded = verifyBytes.sublist(injectionOffset, injectionOffset + availableSpace);
       if (!_arraysEqual(embedded, paddedKey)) {
         throw StateError('Verification failed: written data does not match expected.');
       }
@@ -126,24 +151,23 @@ final class BinaryPatcherService {
   /// Searches for a sequence of bytes in data.
   int _findBytePattern(Uint8List data, Uint8List pattern) {
     if (pattern.isEmpty || data.length < pattern.length) return -1;
-    for (var i = 0; i <= data.length - pattern.length; i++) {
+    if (pattern.length == 1) return data.indexOf(pattern[0]);
+
+    var offset = data.indexOf(pattern[0]);
+
+    while (offset != -1 && offset <= data.length - pattern.length) {
       var match = true;
-      for (var j = 0; j < pattern.length; j++) {
-        if (data[i + j] != pattern[j]) {
+      for (var j = 1; j < pattern.length; j++) {
+        if (data[offset + j] != pattern[j]) {
           match = false;
           break;
         }
       }
-      if (match) return i;
+      if (match) return offset;
+
+      offset = data.indexOf(pattern[0], offset + 1);
     }
     return -1;
-  }
-
-  Uint8List _padToFixedFormat(Uint8List source) {
-    if (source.length > _fixedKeySize) {
-      throw StateError('Serialized key (${source.length} bytes) exceeds fixed format size ($_fixedKeySize).');
-    }
-    return Uint8List(_fixedKeySize)..setAll(0, source);
   }
 
   bool _arraysEqual(Uint8List a, Uint8List b) {
