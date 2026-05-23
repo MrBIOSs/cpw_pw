@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:mysql_client/exception.dart';
 import 'package:mysql_client/mysql_client.dart';
 
-import '../../../config/config.dart';
-import '../database.dart';
+import 'package:cpw_pw/config/config.dart';
+import 'package:cpw_pw/core/database/database.dart';
 
 final class MysqlAdapter implements IDatabase {
   MysqlAdapter(this._config);
@@ -97,7 +97,7 @@ final class MysqlAdapter implements IDatabase {
         onProgress?.call(successCount, queries.length);
       } catch (e) {
         throw DatabaseScriptException(
-          'Failed at query #${i + 1}: ${e.toString()}',
+          'Failed at query #${i + 1}: $e',
           failedAtLine: i + 1,
           cause: e,
         );
@@ -117,7 +117,7 @@ final class MysqlAdapter implements IDatabase {
 
     try {
       return await _connection!.transactional((ctx) async {
-        return await callback(ctx);
+        return callback(ctx);
       });
     } on MySQLException catch (e) {
       throw DatabaseQueryException(

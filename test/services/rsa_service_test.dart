@@ -95,7 +95,7 @@ void main() {
       expect(result.privateKeyPem, startsWith('-----BEGIN RSA PRIVATE KEY-----'));
 
       verify(() => mockStorage.save(any())).called(1);
-    }, timeout: Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)));
 
     test('signFile successfully signs file and appends signature block', () async {
       when(() => mockStorage.save(any())).thenAnswer((_) async => {});

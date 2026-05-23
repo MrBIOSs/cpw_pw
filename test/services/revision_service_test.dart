@@ -115,7 +115,7 @@ void main() {
     test('Successfully reads state from DB when connected', () async {
       when(() => mockDb.isConnected).thenReturn(true);
 
-      final QueryResult dbResult = (
+      final dbResult = (
       affectedRows: 0,
       rows: [
         {'type': 'element', 'max_rev': 7},
@@ -135,7 +135,7 @@ void main() {
 
     test('Falls back to files if DB throws DatabaseQueryException', () async {
       when(() => mockDb.isConnected).thenReturn(true);
-      when(() => mockDb.execute(any(), any())).thenThrow(DatabaseQueryException('DB Error'));
+      when(() => mockDb.execute(any(), any())).thenThrow(const DatabaseQueryException('DB Error'));
 
       File(realConfig.resolvePath('patch/cpw/element/version'))
         ..createSync(recursive: true)
@@ -152,7 +152,7 @@ void main() {
     test('Auto-corrects and updates version files if they are out of sync with DB state', () async {
       when(() => mockDb.isConnected).thenReturn(true);
 
-      final QueryResult dbResult = (
+      final dbResult = (
       affectedRows: 0,
       rows: [
         {'type': 'element', 'max_rev': 20},
@@ -163,8 +163,8 @@ void main() {
       when(() => mockDb.execute(any(), any())).thenAnswer((_) async => dbResult);
 
       for (final type in ['element', 'launcher', 'patcher']) {
-        final dir = Directory(realConfig.resolvePath('patch/cpw/$type'));
-        dir.createSync(recursive: true);
+        Directory(realConfig.resolvePath('patch/cpw/$type'))
+            .createSync(recursive: true);
       }
 
       final elementVersionFile = File(realConfig.resolvePath('patch/cpw/element/version'))
@@ -181,7 +181,7 @@ void main() {
     test('Increments versions, packages files, and stores metadata in the database.', () async {
       when(() => mockDb.isConnected).thenReturn(true);
 
-      final QueryResult initialDbState = (
+      final initialDbState = (
       affectedRows: 0,
       rows: [
         {'type': 'element', 'max_rev': 5},
@@ -197,8 +197,8 @@ void main() {
       });
 
       for (final type in ['element', 'launcher', 'patcher']) {
-        final outputDir = Directory(realConfig.resolvePath('patch/cpw/$type/$type'));
-        outputDir.createSync(recursive: true);
+        Directory(realConfig.resolvePath('patch/cpw/$type/$type'))
+            .createSync(recursive: true);
       }
 
       final elementInputDir = realConfig.resolvePath('patch/new/element');
@@ -207,7 +207,7 @@ void main() {
       File('${subFolder.path}/config.ini').writeAsStringSync('test data');
       File('$elementInputDir/.DS_Store').createSync();
 
-      final PackResult mockPackResult = (uncompressedSize: 9, packedSize: 5, md5: 'abc123md5');
+      const mockPackResult = (uncompressedSize: 9, packedSize: 5, md5: 'abc123md5');
       when(() => mockPacker.pack(any(), any())).thenAnswer((_) async => mockPackResult);
 
       final nextState = await revisionService.createNext();

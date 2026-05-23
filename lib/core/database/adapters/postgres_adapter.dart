@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../database_interface.dart';
+import 'package:cpw_pw/core/database/database_interface.dart';
 
 /// Stub for the PostgreSQL adapter.
 /// Implementation will be added during the migration to PostgreSQL.

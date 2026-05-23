@@ -161,14 +161,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
-  lints:
-    dependency: "direct dev"
-    description:
-      name: lints
-      sha256: "12f842a479589fea194fe5c5a3095abc7be0c1f2ddfa9a0e76aed1dbd26a87df"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.0"
   logging:
     dependency: "direct main"
     description:
@@ -393,6 +385,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  very_good_analysis:
+    dependency: "direct dev"
+    description:
+      name: very_good_analysis
+      sha256: "27927d1140ce1b140f998b6340f730a626faa5b95110b3e34a238ff254d731d0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.1.0"
   vm_service:
     dependency: transitive
     description:

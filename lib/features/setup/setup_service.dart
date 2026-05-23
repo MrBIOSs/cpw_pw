@@ -1,9 +1,9 @@
-import '../../config/config.dart';
-import '../../core/crypto/crypto.dart';
-import '../../core/database/database.dart';
-import '../../core/logger/logger_service.dart';
-import '../security/security.dart';
-import 'validators.dart';
+import 'package:cpw_pw/config/config.dart';
+import 'package:cpw_pw/core/crypto/crypto.dart';
+import 'package:cpw_pw/core/database/database.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
+import 'package:cpw_pw/features/security/security.dart';
+import 'package:cpw_pw/features/setup/validators.dart';
 
 /// Database, keys, validation.
 final class SetupService {

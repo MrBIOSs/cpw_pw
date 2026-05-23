@@ -1,4 +1,24 @@
-include: package:lints/recommended.yaml
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - .dart_tool/**
+
+  errors:
+    missing_required_param: error
+    missing_return: error
+    avoid_dynamic_calls: error
+    unawaited_futures: error
+    only_throw_errors: error
+    dead_code: error
+    unused_element: error
+    unused_local_variable: error
+
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
 
 linter:
   rules:
@@ -8,17 +28,27 @@ linter:
     unawaited_futures: true
     exhaustive_cases: true
     avoid_slow_async_io: true
+    cancel_subscriptions: true
+    close_sinks: true
+    unnecessary_await_in_return: true
+    avoid_catches_without_on_clauses: false
+    no_runtimeType_toString: false
 
     # Style, readability, and modern syntax
     prefer_single_quotes: true
     require_trailing_commas: true
-    prefer_relative_imports: true
     prefer_interpolation_to_compose_strings: true
     unnecessary_lambdas: true
     unnecessary_string_escapes: true
     unnecessary_brace_in_string_interps: true
     use_colored_box: false
     use_decorated_box: false
+    prefer_final_fields: true
+    directives_ordering: false
+    eol_at_end_of_file: false
+    public_member_api_docs: false
+    lines_longer_than_80_chars: false
+    sort_pub_dependencies: false
 
     # Architecture and supportability
     sort_constructors_first: true
@@ -29,21 +59,4 @@ linter:
     use_string_buffers: true
     avoid_redundant_argument_values: true
     parameter_assignments: false
-
-analyzer:
-  language:
-    strict-casts: true
-    strict-inference: true
-    strict-raw-types: true
-  exclude:
-    - "**/*.g.dart"
-    - "**/*.freezed.dart"
-    - "build/**"
-    - "**.mocks.dart"
-  errors:
-    avoid_dynamic_calls: error
-    unawaited_futures: error
-    only_throw_errors: error
-    dead_code: error
-    unused_element: error
-    unused_local_variable: error
+    use_super_parameters: true

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
-import '../../core/logger/logger_service.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
 
 /// The result of packing the file.
 typedef PackResult = ({
@@ -34,10 +34,12 @@ class PackerService {
     final sink = target.openWrite();
 
     // 4-byte little-endian source file size
-    final sizeBuffer = ByteData(4);
-    sizeBuffer.setInt32(0, uncompressedSize, Endian.little);
-    sink.add(sizeBuffer.buffer.asUint8List());
-    sink.add(outputBytes);
+    final sizeBuffer = ByteData(4)
+      ..setInt32(0, uncompressedSize, Endian.little);
+
+    sink
+      ..add(sizeBuffer.buffer.asUint8List())
+      ..add(outputBytes);
 
     await sink.flush();
     await sink.close();
@@ -55,8 +57,7 @@ class PackerService {
   }
 
   Future<String> _calculateMd5(File file) async {
-    final digest = MD5Digest();
-    digest.reset();
+    final digest = MD5Digest()..reset();
 
     await for (final chunk in file.openRead()) {
       final bytes = chunk is Uint8List ? chunk : Uint8List.fromList(chunk);

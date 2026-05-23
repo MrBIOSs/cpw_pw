@@ -1,14 +1,15 @@
 import 'dart:io';
-import '../../../core/utils/ansi_colors.dart';
-import '../../../di/service_locator.dart' as di;
-import '../security.dart';
+import 'package:cpw_pw/core/utils/ansi_colors.dart';
+import 'package:cpw_pw/di/service_locator.dart' as di;
+import 'package:cpw_pw/features/security/security.dart';
 
-/// Command "./cpw x [executable]".
+/// Command "./cpw x".
 final class PatchCommand {
   Future<int> execute({required List<String> args}) async {
     if (args.isEmpty) {
-      stderr.writeln(AnsiColors.error('Missing executable path'));
-      stderr.writeln(AnsiColors.dim('Usage: ./cpw x <path-to-executable> [--marker="..."] [--help]'));
+      stderr
+        ..writeln(AnsiColors.error('Missing executable path'))
+        ..writeln(AnsiColors.dim('Usage: ./cpw x <path-to-executable> [--marker="..."] [--help]'));
       return 1;
     }
 
@@ -22,9 +23,10 @@ final class PatchCommand {
     try {
       final patcher = di.getIt<BinaryPatcherService>();
 
-      stdout.writeln(AnsiColors.heading('Patching executable...'));
-      stdout.writeln(AnsiColors.dim('  File: $executablePath'));
-      stdout.writeln(AnsiColors.dim('  Marker: "$marker"'));
+      stdout
+        ..writeln(AnsiColors.heading('Patching executable...'))
+        ..writeln(AnsiColors.dim('  File: $executablePath'))
+        ..writeln(AnsiColors.dim('  Marker: "$marker"'));
       if (isHelp) stdout.writeln(AnsiColors.dim('  Mode: HELP RUN'));
       stdout.writeln();
 
@@ -35,17 +37,14 @@ final class PatchCommand {
         verify: !isHelp,
       );
 
-      stdout.writeln(AnsiColors.success('Executable patched successfully'));
-      stdout.writeln(AnsiColors.dim('  Offset: ${result.markerOffset}'));
-      stdout.writeln(AnsiColors.dim('  Key size: ${result.keySize} bytes (padded to ${result.originalSize})'));
+      stdout
+        ..writeln(AnsiColors.success('Executable patched successfully'))
+        ..writeln(AnsiColors.dim('  Offset: ${result.markerOffset}'))
+        ..writeln(AnsiColors.dim('  Key size: ${result.keySize} bytes (padded to ${result.originalSize})'));
 
       return 0;
     } on FileSystemException catch (e) {
       stderr.writeln(AnsiColors.error('File error: ${e.message}'));
-      return 1;
-    } on StateError catch (e) {
-      stderr.writeln(AnsiColors.error('$e'));
-      stderr.writeln(AnsiColors.dim('Tip: Ensure the executable contains the exact marker string.'));
       return 1;
     } on Exception catch (e) {
       stderr.writeln(AnsiColors.error('Unexpected error: $e'));

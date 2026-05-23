@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'exceptions.dart';
+import 'package:cpw_pw/core/database/exceptions.dart';
 
 enum DbType { mysql, postgres }
 

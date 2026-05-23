@@ -1,10 +1,10 @@
 import 'dart:io';
-import '../../../config/config.dart';
-import '../../../core/database/database.dart';
-import '../../../core/utils/ansi_colors.dart';
-import '../../../di/service_locator.dart' as di;
-import '../../security/security.dart';
-import '../setup_service.dart';
+import 'package:cpw_pw/config/config.dart';
+import 'package:cpw_pw/core/database/database.dart';
+import 'package:cpw_pw/core/utils/ansi_colors.dart';
+import 'package:cpw_pw/di/service_locator.dart' as di;
+import 'package:cpw_pw/features/security/security.dart';
+import 'package:cpw_pw/features/setup/setup_service.dart';
 
 /// Command "./cpw install".
 final class InstallCommand {
@@ -14,8 +14,9 @@ final class InstallCommand {
     final isHelp = args.contains('--help') || args.contains('-h');
 
     if (isHelp) {
-      stdout.writeln(AnsiColors.heading('Help mode — no changes will be made'));
-      stdout.writeln();
+      stdout
+        ..writeln(AnsiColors.heading('Help mode — no changes will be made'))
+        ..writeln();
     }
 
     try {
@@ -28,16 +29,17 @@ final class InstallCommand {
         config: config,
       );
 
-      stdout.writeln(AnsiColors.heading('Starting installation...'));
-      stdout.writeln();
+      stdout
+        ..writeln(AnsiColors.heading('Starting installation...'))
+        ..writeln();
 
       if (isHelp) {
-        stdout.writeln(AnsiColors.dim('This command does:'));
-        stdout.writeln(AnsiColors.dim('  - Connects to the database.'));
-        stdout.writeln(AnsiColors.dim('  - Runs the install script if any required tables are missing.'));
-        stdout.writeln(AnsiColors.dim('  - Generates new 2048-bit RSA keys if they do not exist.'));
-
-        stdout.writeln();
+        stdout
+          ..writeln(AnsiColors.dim('This command does:'))
+          ..writeln(AnsiColors.dim('  - Connects to the database.'))
+          ..writeln(AnsiColors.dim('  - Runs the install script if any required tables are missing.'))
+          ..writeln(AnsiColors.dim('  - Generates new 2048-bit RSA keys if they do not exist.'))
+          ..writeln();
         return 0;
       }
 
@@ -47,15 +49,16 @@ final class InstallCommand {
       );
 
       stdout.writeln();
-      int currentStep = 1;
+      var currentStep = 1;
       for (final step in result.steps) {
         stdout.writeln(AnsiColors.success('[$currentStep/${result.steps.length}] $step'));
         currentStep++;
       }
 
       if (result.errors.isNotEmpty) {
-        stderr.writeln();
-        stderr.writeln(AnsiColors.error('Installation failed:'));
+        stderr
+          ..writeln()
+          ..writeln(AnsiColors.error('Installation failed:'));
         for (final error in result.errors) {
           stderr.writeln(AnsiColors.dim('- $error'));
         }
@@ -64,10 +67,11 @@ final class InstallCommand {
 
       stdout.writeln();
       if (result.isSuccess) {
-        stdout.writeln(AnsiColors.success('Installation completed successfully!'));
-        stdout.writeln();
-        stdout.writeln(AnsiColors.dim('Next steps:'));
-        stdout.writeln(AnsiColors.dim('  - Run "./cpw initial" to create base revision'));
+        stdout
+          ..writeln(AnsiColors.success('Installation completed successfully!'))
+          ..writeln()
+          ..writeln(AnsiColors.dim('Next steps:'))
+          ..writeln(AnsiColors.dim('  - Run "./cpw initial" to create base revision'));
       } else {
         stdout.writeln(AnsiColors.warning('Installation completed with warnings'));
       }

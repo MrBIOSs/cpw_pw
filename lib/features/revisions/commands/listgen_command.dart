@@ -1,7 +1,7 @@
 import 'dart:io';
-import '../../../core/utils/ansi_colors.dart';
-import '../../../di/service_locator.dart' as di;
-import '../revisions.dart';
+import 'package:cpw_pw/core/utils/ansi_colors.dart';
+import 'package:cpw_pw/di/service_locator.dart' as di;
+import 'package:cpw_pw/features/revisions/revisions.dart';
 
 /// Command "./cpw listgen".
 /// Regenerates manifests from the current state of the database without incrementing the revision.
@@ -11,10 +11,11 @@ final class ListgenCommand {
     final isHelp = args.contains('--help') || args.contains('-h');
 
     if (isHelp) {
-      stdout.writeln(AnsiColors.heading('Help — regenerate manifests only'));
-      stdout.writeln(AnsiColors.dim('  - Read current state from DB/files'));
-      stdout.writeln(AnsiColors.dim('  - Rebuild files.md5 & v-N.inc'));
-      stdout.writeln(AnsiColors.dim('  - Sign with RSA'));
+      stdout
+        ..writeln(AnsiColors.heading('Help — regenerate manifests only'))
+        ..writeln(AnsiColors.dim('  - Read current state from DB/files'))
+        ..writeln(AnsiColors.dim('  - Rebuild files.md5 & v-N.inc'))
+        ..writeln(AnsiColors.dim('  - Sign with RSA'));
       return 0;
     }
 
@@ -25,8 +26,9 @@ final class ListgenCommand {
       await revisionService.syncVersionFilesToDb();
       final state = await revisionService.getCurrentState();
 
-      stdout.writeln(AnsiColors.heading('Regenerating manifests from current DB state...'));
-      stdout.writeln();
+      stdout
+        ..writeln(AnsiColors.heading('Regenerating manifests from current DB state...'))
+        ..writeln();
 
       final types = type != null ? [type] : ['element', 'launcher', 'patcher'];
 
@@ -36,14 +38,12 @@ final class ListgenCommand {
         stdout.writeln(AnsiColors.success('    $t: done'));
       }
 
-      stdout.writeln();
-      stdout.writeln(AnsiColors.success('Manifests regenerated successfully!'));
-      stdout.writeln(AnsiColors.dim('Tip: If you only modified files, use "./cpw new" to pack & increment.'));
+      stdout
+        ..writeln()
+        ..writeln(AnsiColors.success('Manifests regenerated successfully!'))
+        ..writeln(AnsiColors.dim('Tip: If you only modified files, use "./cpw new" to pack & increment.'));
 
       return 0;
-    } on StateError catch (e) {
-      stderr.writeln(AnsiColors.error('Invalid state: $e'));
-      return 1;
     } on Exception catch (e) {
       stderr.writeln(AnsiColors.error('Failed: $e'));
       return 1;

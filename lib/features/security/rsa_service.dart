@@ -5,8 +5,8 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:pointycastle/export.dart';
 
-import '../../core/crypto/crypto.dart';
-import '../../core/logger/logger_service.dart';
+import 'package:cpw_pw/core/crypto/crypto.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
 
 /// Service for generating and managing RSA keys.
 class RsaService {
@@ -51,9 +51,9 @@ ${keys.publicKeyPem}
   /// Loads existing keys from the repository.
   Future<RsaKeyPair> loadKeys() async {
     if (!_storage.hasKeys()) {
-      throw KeyNotFoundException('No keys found. Run "./cpw rsagen" first.');
+      throw const KeyNotFoundException('No keys found. Run "./cpw rsagen" first.');
     }
-    return await _storage.load();
+    return _storage.load();
   }
 
   /// Checks if there are any saved keys.
@@ -89,13 +89,14 @@ ${keys.publicKeyPem}
     final signature = _signWithMd5Rsa(data: content, key: keys);
     final signatureBase64 = base64Encode(signature).replaceAll('=', '');
 
-    final sink = file.openWrite(mode: FileMode.append);
-    sink.write('\n-----BEGIN ELEMENT SIGNATURE-----\n');
+    final sink = file.openWrite(mode: FileMode.append)
+      ..write('\n-----BEGIN ELEMENT SIGNATURE-----\n');
 
     for (var i = 0; i < signatureBase64.length; i += 64) {
       final end = i + 64 > signatureBase64.length ? signatureBase64.length : i + 64;
-      sink.write(signatureBase64.substring(i, end));
-      sink.write('\n');
+      sink
+        ..write(signatureBase64.substring(i, end))
+        ..write('\n');
     }
     await sink.flush();
     await sink.close();
@@ -128,12 +129,11 @@ ${keys.publicKeyPem}
       ...hash,
     ]);
 
-    final cipher = PKCS1Encoding(RSAEngine());
-
-    cipher.init(
-      true,
-      PrivateKeyParameter<RSAPrivateKey>(privateKey),
-    );
+    final cipher = PKCS1Encoding(RSAEngine())
+      ..init(
+        true,
+        PrivateKeyParameter<RSAPrivateKey>(privateKey),
+      );
 
     final signatureBytes = cipher.process(digestInfo);
     return signatureBytes;

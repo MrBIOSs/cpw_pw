@@ -14,6 +14,18 @@ Future<void> main(List<String> arguments) async {
     loggerService = di.getIt<LoggerService>();
     await loggerService.initialize();
 
+    /// Clears buffers before exiting.
+    Future<void> shutdown() async {
+      await loggerService?.dispose();
+      exit(0);
+    }
+
+    ProcessSignal.sigint.watch().listen((_) => shutdown());
+
+    if (!Platform.isWindows) {
+      ProcessSignal.sigterm.watch().listen((_) => shutdown());
+    }
+
     log.info('CPW Patcher started');
 
     final exitCode = await runCli(arguments);

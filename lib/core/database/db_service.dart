@@ -1,7 +1,7 @@
 import 'dart:io';
-import '../../config/config.dart';
-import '../logger/logger_service.dart';
-import 'database.dart';
+import 'package:cpw_pw/config/config.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
+import 'package:cpw_pw/core/database/database.dart';
 
 /// Initialization, migrations, script execution.
 class DbService {

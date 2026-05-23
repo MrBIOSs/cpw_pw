@@ -59,7 +59,7 @@ void main() {
 
   group('generateManifests', () {
     test('Throws StateError if the current revision is less than the minimum revision.', () async {
-      final RevisionState state = (
+      const state = (
       elementCurrentVer: 1,
       launcherCurrentVer: 1,
       patcherCurrentVer: 1,
@@ -72,12 +72,12 @@ void main() {
     });
 
     test('Skips generation if the database is empty', () async {
-      final RevisionState state = (
+      const state = (
       elementCurrentVer: 2,
       launcherCurrentVer: 1,
       patcherCurrentVer: 1,
       );
-      final QueryResult emptyResult = (affectedRows: 0, rows: []);
+      final emptyResult = (affectedRows: 0, rows: <Map<String, dynamic>> []);
 
       when(() => mockDb.execute(any(), {'type': 'element'}))
           .thenAnswer((_) async => emptyResult);
@@ -87,7 +87,7 @@ void main() {
     });
 
     test('Successfully creates .md5 files, patches, and a version file.', () async {
-      final RevisionState state = (
+      const state = (
       elementCurrentVer: 3,
       launcherCurrentVer: 1,
       patcherCurrentVer: 1,
@@ -142,7 +142,7 @@ void main() {
     });
 
     test('Successfully cleans up old .inc files that are out of revision range', () async {
-      final RevisionState state = (
+      const state = (
       elementCurrentVer: 5,
       launcherCurrentVer: 1,
       patcherCurrentVer: 1,

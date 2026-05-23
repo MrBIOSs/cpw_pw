@@ -79,12 +79,12 @@ void main() {
 
     test('Throws a StateError if there is not enough space in the file after the marker for 219 bytes.',
             () async {
-      final marker = '-----BEGIN PUBLIC KEY-----';
+      const marker = '-----BEGIN PUBLIC KEY-----';
       final fakeExe = File('${tempDir.path}/launcher.exe')
         ..writeAsStringSync('$marker\n');
 
       expect(
-            () => patcherService.patchExecutable(executablePath: fakeExe.path, marker: marker),
+            () => patcherService.patchExecutable(executablePath: fakeExe.path),
         throwsA(isA<StateError>().having(
               (e) => e.message,
           'message',
@@ -95,12 +95,11 @@ void main() {
 
     test('In isHelp: true mode, returns the correct PatchResult, but does not modify the file.',
             () async {
-      final marker = '-----BEGIN PUBLIC KEY-----';
+      const marker = '-----BEGIN PUBLIC KEY-----';
       final fileContent = '$marker\n${'0' * 250}';
       final fakeExe = File('${tempDir.path}/launcher.exe')..writeAsStringSync(fileContent);
       final result = await patcherService.patchExecutable(
         executablePath: fakeExe.path,
-        marker: marker,
         isHelp: true,
       );
 
@@ -114,18 +113,17 @@ void main() {
 
     test('Successfully performs key injection and successfully passes verification verify: true',
             () async {
-      final marker = '-----BEGIN PUBLIC KEY-----';
+      const marker = '-----BEGIN PUBLIC KEY-----';
       final markerBytes = utf8.encode(marker);
       final totalSize = markerBytes.length + 1 + 300;
-      final dummyBytes = Uint8List(totalSize);
+      final dummyBytes = Uint8List(totalSize)
+        ..setRange(0, markerBytes.length, markerBytes);
 
-      dummyBytes.setRange(0, markerBytes.length, markerBytes);
       dummyBytes[markerBytes.length] = utf8.encode('\n').first;
 
       final fakeExe = File('${tempDir.path}/launcher.exe')..writeAsBytesSync(dummyBytes);
       final result = await patcherService.patchExecutable(
         executablePath: fakeExe.path,
-        marker: marker,
       );
 
       expect(result.patched, isTrue);

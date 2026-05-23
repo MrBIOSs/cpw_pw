@@ -1,17 +1,17 @@
 import 'package:get_it/get_it.dart';
 import 'package:logging/logging.dart';
 
-import '../app/command_registry.dart';
-import '../config/config.dart';
-import '../core/database/database.dart';
-import '../core/crypto/crypto.dart';
-import '../core/logger/logger_service.dart';
-import '../features/revisions/revisions.dart';
-import '../features/security/security.dart';
-import '../features/setup/setup.dart';
+import 'package:cpw_pw/app/command_registry.dart';
+import 'package:cpw_pw/config/config.dart';
+import 'package:cpw_pw/core/database/database.dart';
+import 'package:cpw_pw/core/crypto/crypto.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
+import 'package:cpw_pw/features/revisions/revisions.dart';
+import 'package:cpw_pw/features/security/security.dart';
+import 'package:cpw_pw/features/setup/setup.dart';
 
 /// Global service locator.
-final getIt = GetIt.instance;
+final GetIt getIt = GetIt.instance;
 
 /// Initializes all application dependencies.
 /// Called once in main() before running the logic.
@@ -40,92 +40,94 @@ void _registerLogger() {
 void _registerDatabase() {
   final config = getIt<PatcherConfig>();
 
-  getIt.registerLazySingleton<IDatabase>(() => MysqlAdapter(config));
-  getIt.registerLazySingleton<DbService>(() => DbService(
+  getIt
+    ..registerLazySingleton<IDatabase>(() => MysqlAdapter(config))
+    ..registerLazySingleton<DbService>(() => DbService(
       config: config,
-      adapter: getIt<IDatabase>()
+      adapter: getIt<IDatabase>(),
   ));
 }
 
 void _registerCrypto() {
   final baseDir = getIt<PatcherConfig>().baseDir;
 
-  getIt.registerLazySingleton<IKeyStorage>(() => FileKeyStorage(baseDir: baseDir));
-  getIt.registerLazySingleton<RsaService>(() => RsaService(storage: getIt<IKeyStorage>()));
+  getIt
+    ..registerLazySingleton<IKeyStorage>(() => FileKeyStorage(baseDir: baseDir))
+    ..registerLazySingleton<RsaService>(() => RsaService(storage: getIt<IKeyStorage>()));
 }
 
 void _registerFeatures() {
-  getIt.registerLazySingleton<SetupService>(() => SetupService(
-    dbService: getIt<DbService>(),
-    rsaService: getIt<RsaService>(),
-    config: getIt<PatcherConfig>()
-  ));
-  getIt.registerLazySingleton<BinaryPatcherService>(
+  getIt
+    ..registerLazySingleton<SetupService>(() => SetupService(
+      dbService: getIt<DbService>(),
+      rsaService: getIt<RsaService>(),
+      config: getIt<PatcherConfig>(),
+    ))
+    ..registerLazySingleton<BinaryPatcherService>(
         () => BinaryPatcherService(keyStorage: getIt<IKeyStorage>()),
-  );
-  getIt.registerLazySingleton<PackerService>(PackerService.new);
-  getIt.registerLazySingleton<RevisionService>(() => RevisionService(
+    )
+    ..registerLazySingleton<PackerService>(PackerService.new)
+    ..registerLazySingleton<RevisionService>(() => RevisionService(
       config: getIt<PatcherConfig>(),
       dbService: getIt<DbService>(),
       packer: getIt<PackerService>(),
-  ));
-  getIt.registerLazySingleton<ManifestService>(() => ManifestService(
+    ))
+    ..registerLazySingleton<ManifestService>(() => ManifestService(
       config: getIt<PatcherConfig>(),
       dbService: getIt<DbService>(),
-      rsaService: getIt<RsaService>()
-  ));
+      rsaService: getIt<RsaService>(),
+    ));
 }
 
 void _registerCommands() {
-  getIt.registerFactory<InstallCommand>(InstallCommand.new);
-  getIt.registerFactory<RsagenCommand>(RsagenCommand.new);
-  getIt.registerFactory<PatchCommand>(PatchCommand.new);
-  getIt.registerFactory<InitialCommand>(InitialCommand.new);
-  getIt.registerFactory<NewCommand>(NewCommand.new);
-  getIt.registerFactory<ListgenCommand>(ListgenCommand.new);
-
-  getIt.registerSingleton<CommandRegistry>(_buildCommandRegistry());
+  getIt
+    ..registerFactory<InstallCommand>(InstallCommand.new)
+    ..registerFactory<RsagenCommand>(RsagenCommand.new)
+    ..registerFactory<PatchCommand>(PatchCommand.new)
+    ..registerFactory<InitialCommand>(InitialCommand.new)
+    ..registerFactory<NewCommand>(NewCommand.new)
+    ..registerFactory<ListgenCommand>(ListgenCommand.new)
+    ..registerSingleton<CommandRegistry>(_buildCommandRegistry());
 }
 
 /// Registers all available commands.
 CommandRegistry _buildCommandRegistry() {
-  final registry = CommandRegistry();
+  final registry = CommandRegistry()
+    ..register((
+    name: 'install',
+    description: 'Install updater: database setup, RSA keys generation, paths',
+    usage: null,
+    action: (args) async => getIt<InstallCommand>().execute(args: args)))
 
-  registry.register((
-  name: 'install',
-  description: 'Install updater: database setup, RSA keys generation, paths',
-  usage: null,
-  action: (args) async => getIt<InstallCommand>().execute(args: args)));
+    ..register((
+    name: 'rsagen',
+    description: 'Regenerate RSA keys',
+    usage: null,
+    action: (args) async => getIt<RsagenCommand>().execute(args: args)))
 
-  registry.register((
-  name: 'rsagen',
-  description: 'Regenerate RSA keys',
-  usage: null,
-  action: (args) async => getIt<RsagenCommand>().execute(args: args)));
+    ..register((
+    name: 'x',
+    description: 'Patch executable with public RSA key',
+    usage: './cpw x [executable] [--marker="..."]',
+    action: (args) async => getIt<PatchCommand>().execute(args: args)))
 
-  registry.register((
-  name: 'x',
-  description: 'Patch executable with public RSA key',
-  usage: './cpw x [executable] [--marker="..."]',
-  action: (args) async => getIt<PatchCommand>().execute(args: args)));
+    ..register((
+    name: 'initial',
+    description: "Create initial (base) revision, doesn't create lists",
+    usage: null,
+    action: (args) async => getIt<InitialCommand>().execute(args: args)))
 
-  registry.register((
-  name: 'initial',
-  description: 'Create initial (base) revision, doesn\'t create lists',
-  usage: null,
-  action: (args) async => getIt<InitialCommand>().execute(args: args)));
+    ..register((
+    name: 'new',
+    description: 'Create next revision, creates lists',
+    usage: null,
+    action: (args) async => getIt<NewCommand>().execute(args: args)))
 
-  registry.register((
-  name: 'new',
-  description: 'Create next revision, creates lists',
-  usage: null,
-  action: (args) async => getIt<NewCommand>().execute(args: args)));
-
-  registry.register((
-  name: 'listgen',
-  description: 'Full regeneration of files.md5',
-  usage: './cpw listgen [--type=element]',
-  action: (args) async => getIt<ListgenCommand>().execute(args: args)));
+    ..register((
+    name: 'listgen',
+    description: 'Full regeneration of files.md5',
+    usage: './cpw listgen [--type=element]',
+    action: (args) async => getIt<ListgenCommand>().execute(args: args)));
 
   return registry;
 }

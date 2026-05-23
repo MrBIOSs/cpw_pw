@@ -1,6 +1,6 @@
 import 'dart:io';
-import '../core/utils/ansi_colors.dart';
-import 'command_info.dart';
+import 'package:cpw_pw/core/utils/ansi_colors.dart';
+import 'package:cpw_pw/app/command_info.dart';
 
 /// Command registry with dynamic registration support and generated result.
 final class CommandRegistry {
@@ -9,7 +9,7 @@ final class CommandRegistry {
   /// Registers the command in the registry.
   void register(CommandInfo command) {
     assert(
-    _commands.any((c) => c.name == command.name) == false,
+    !_commands.any((c) => c.name == command.name),
     'Command "${command.name}" already registered.',
     );
     _commands.add(command);
@@ -27,8 +27,9 @@ final class CommandRegistry {
   }) {
     final pad = _calculatePadding(executableName);
 
-    stdout.writeln(useColors ? AnsiColors.heading('Usage:') : 'Usage:');
-    stdout.writeln();
+    stdout
+      ..writeln(useColors ? AnsiColors.heading('Usage:') : 'Usage:')
+      ..writeln();
 
     for (final cmd in _commands) {
       final name = cmd.usage ?? '$executableName ${cmd.name}';
@@ -36,9 +37,10 @@ final class CommandRegistry {
       final padding = ' ' * (pad - name.length);
 
       if (useColors && stdout.supportsAnsiEscapes) {
-        stdout.write(AnsiColors.command('\t$name'));
-        stdout.write('$padding\t');
-        stdout.writeln(AnsiColors.description(desc));
+        stdout
+          ..write(AnsiColors.command('\t$name'))
+          ..write('$padding\t')
+          ..writeln(AnsiColors.description(desc));
       } else {
         stdout.writeln('\t$name$padding\t$desc');
       }

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import '../../config/patcher_config.dart';
-import '../../core/logger/logger_service.dart';
+import 'package:cpw_pw/config/patcher_config.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
 
 /// Environment validator before the idea.
 final class SetupValidator {

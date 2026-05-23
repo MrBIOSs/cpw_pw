@@ -20,15 +20,6 @@ void main() {
   });
 
   group('LoggerService Tests', () {
-    test('Initialization should set the singleton instance', () async {
-      final logger = LoggerService(logDir: testLogDir);
-      await logger.initialize();
-
-      expect(LoggerService.instance, equals(logger));
-
-      await logger.dispose();
-    });
-
     test('initialize() should create log directory and files', () async {
       final logger = LoggerService(logDir: testLogDir);
       await logger.initialize();
@@ -44,10 +35,10 @@ void main() {
       final logger = LoggerService(logDir: testLogDir);
       await logger.initialize();
 
-      final testMessage = 'Test info message';
+      const testMessage = 'Test info message';
       Logger('TestLogger').info(testMessage);
 
-      await Future<void>.delayed(Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
       await logger.dispose();
 
       final consoleLog = await File(p.join(testLogDir, 'console.log')).readAsString();
@@ -60,10 +51,10 @@ void main() {
       final logger = LoggerService(logDir: testLogDir);
       await logger.initialize();
 
-      final errorMessage = 'Critical failure';
+      const errorMessage = 'Critical failure';
       Logger('ErrorLogger').severe(errorMessage);
 
-      await Future<void>.delayed(Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
       await logger.dispose();
 
       final errorLog = await File(p.join(testLogDir, 'errors.log')).readAsString();
@@ -77,7 +68,7 @@ void main() {
 
       Logger('TestLogger').info('This should not be logged');
 
-      await Future<void>.delayed(Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
       await logger.dispose();
 
       final consoleLog = await File(p.join(testLogDir, 'console.log')).readAsString();

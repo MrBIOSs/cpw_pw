@@ -3,8 +3,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:pointycastle/asymmetric/api.dart';
 
-import '../../core/crypto/crypto.dart';
-import '../../core/logger/logger_service.dart';
+import 'package:cpw_pw/core/crypto/crypto.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
 
 typedef PatchResult = ({
 int markerOffset,
@@ -64,7 +64,7 @@ final class BinaryPatcherService {
       );
     }
 
-    final PatchResult result = (
+    final result = (
     markerOffset: injectionOffset,
     originalSize: markerBytes.length,
     keySize: keyData.length,
@@ -127,7 +127,7 @@ final class BinaryPatcherService {
   int _findBytePattern(Uint8List data, Uint8List pattern) {
     if (pattern.isEmpty || data.length < pattern.length) return -1;
     for (var i = 0; i <= data.length - pattern.length; i++) {
-      bool match = true;
+      var match = true;
       for (var j = 0; j < pattern.length; j++) {
         if (data[i + j] != pattern[j]) {
           match = false;
@@ -143,9 +143,7 @@ final class BinaryPatcherService {
     if (source.length > _fixedKeySize) {
       throw StateError('Serialized key (${source.length} bytes) exceeds fixed format size ($_fixedKeySize).');
     }
-    final padded = Uint8List(_fixedKeySize);
-    padded.setAll(0, source);
-    return padded;
+    return Uint8List(_fixedKeySize)..setAll(0, source);
   }
 
   bool _arraysEqual(Uint8List a, Uint8List b) {

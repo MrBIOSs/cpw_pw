@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import '../../config/config.dart';
-import '../../core/crypto/utils/base64_path_encoder.dart';
-import '../../core/database/database.dart';
-import '../../core/logger/logger_service.dart';
-import '../../core/utils/utilities.dart';
-import 'models/revision_state.dart';
-import 'packer_service.dart';
+import 'package:cpw_pw/config/config.dart';
+import 'package:cpw_pw/core/crypto/utils/base64_path_encoder.dart';
+import 'package:cpw_pw/core/database/database.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
+import 'package:cpw_pw/core/utils/utilities.dart';
+import 'package:cpw_pw/features/revisions/models/revision_state.dart';
+import 'package:cpw_pw/features/revisions/packer_service.dart';
 
 /// Patcher revision management service.
 final class RevisionService {
@@ -38,9 +38,9 @@ final class RevisionService {
     log.fine('Output directory structure created');
 
     await _writeVersionFiles(initialState);
-    log.fine('Version files initialized');
-
-    log.info('Base revision state initialized');
+    log
+      ..fine('Version files initialized')
+      ..info('Base revision state initialized');
     return initialState;
   }
 

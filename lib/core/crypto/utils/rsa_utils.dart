@@ -65,17 +65,17 @@ final class RsaUtils {
   ///   BIT STRING { SEQUENCE { modulus INTEGER, exponent INTEGER } }
   /// }
   static Uint8List encodeSubjectPublicKeyInfo(RSAPublicKey key) {
-    final rsaSeq = ASN1Sequence();
-    rsaSeq.add(ASN1Integer(key.modulus!));
-    rsaSeq.add(ASN1Integer(key.exponent!));
+    final rsaSeq = ASN1Sequence()
+      ..add(ASN1Integer(key.modulus!))
+      ..add(ASN1Integer(key.exponent!));
 
-    final algoSeq = ASN1Sequence();
-    algoSeq.add(ASN1ObjectIdentifier.fromComponentString('1.2.840.113549.1.1.1'));
-    algoSeq.add(ASN1Null());
+    final algoSeq = ASN1Sequence()
+      ..add(ASN1ObjectIdentifier.fromComponentString('1.2.840.113549.1.1.1'))
+      ..add(ASN1Null());
 
-    final spki = ASN1Sequence();
-    spki.add(algoSeq);
-    spki.add(ASN1BitString(rsaSeq.encodedBytes));
+    final spki = ASN1Sequence()
+      ..add(algoSeq)
+      ..add(ASN1BitString(rsaSeq.encodedBytes));
 
     return spki.encodedBytes;
   }
@@ -94,28 +94,27 @@ final class RsaUtils {
     final dP = key.privateExponent! % (p - BigInt.one); // d mod (p-1)
     final dQ = key.privateExponent! % (q - BigInt.one); // d mod (q-1)
     final qInv = RsaUtils.modInverse(q, p); // q^-1 mod p
-    final seq = ASN1Sequence();
-
-    seq.add(ASN1Integer(BigInt.zero));
-    seq.add(ASN1Integer(key.modulus!));           // n
-    seq.add(ASN1Integer(key.exponent!));          // e
-    seq.add(ASN1Integer(key.privateExponent!));   // d
-    seq.add(ASN1Integer(p));                      // p
-    seq.add(ASN1Integer(q));                      // q
-    seq.add(ASN1Integer(dP));                     // dP
-    seq.add(ASN1Integer(dQ));                     // dQ
-    seq.add(ASN1Integer(qInv));                   // qInv
+    final seq = ASN1Sequence()
+      ..add(ASN1Integer(BigInt.zero))
+      ..add(ASN1Integer(key.modulus!))           // n
+      ..add(ASN1Integer(key.exponent!))          // e
+      ..add(ASN1Integer(key.privateExponent!))   // d
+      ..add(ASN1Integer(p))                      // p
+      ..add(ASN1Integer(q))                      // q
+      ..add(ASN1Integer(dP))                     // dP
+      ..add(ASN1Integer(dQ))                     // dQ
+      ..add(ASN1Integer(qInv));                   // qInv
 
     return seq.encodedBytes;
   }
 
   /// Converts BigInt to bytes (big-endian, unsigned).
   static Uint8List _bigIntToBytes(BigInt number) {
-    final int bytes = (number.bitLength + 7) >> 3;
+    final bytes = (number.bitLength + 7) >> 3;
     final b256 = BigInt.from(256);
     final result = Uint8List(bytes);
 
-    for (int i = 0; i < bytes; i++) {
+    for (var i = 0; i < bytes; i++) {
       result[bytes - 1 - i] = number.remainder(b256).toInt();
       number = number >> 8;
     }
@@ -124,8 +123,8 @@ final class RsaUtils {
 
   /// Converts bytes to BigInt (big-endian, unsigned).
   static BigInt _bytesToBigInt(Uint8List bytes) {
-    BigInt result = BigInt.from(0);
-    for (int i = 0; i < bytes.length; i++) {
+    var result = BigInt.from(0);
+    for (var i = 0; i < bytes.length; i++) {
       result = (result << 8) | BigInt.from(bytes[i]);
     }
     return result;

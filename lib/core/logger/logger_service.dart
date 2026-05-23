@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:ansicolor/ansicolor.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import '../utils/ansi_colors.dart';
+import 'package:cpw_pw/core/utils/ansi_colors.dart';
 
 /// A service for managing logging in a CLI application.
 ///
@@ -25,13 +25,6 @@ final class LoggerService {
   final String _logDir;
   final Level _minLevel;
 
-  static LoggerService? _instance;
-
-  /// Returns an initialized service instance.
-  ///
-  /// Throws a [StateError] if the [initialize] method has not yet been called.
-  static LoggerService get instance => _instance ?? (throw StateError('LoggerService not initialized'));
-
   IOSink? _consoleSink;
   IOSink? _errorsSink;
   StreamSubscription<LogRecord>? _subscription;
@@ -39,7 +32,6 @@ final class LoggerService {
   /// Creates directories, opens file write streams
   /// and subscribes to the system log bus [Logger.root].
   Future<void> initialize() async {
-    _instance = this;
     await Directory(_logDir).create(recursive: true);
 
     _consoleSink = File(path.join(_logDir, 'console.log')).openWrite();
@@ -47,8 +39,6 @@ final class LoggerService {
 
     Logger.root.level = _minLevel;
     _subscription = Logger.root.onRecord.listen(_handleRecord);
-
-    _setupSignalHandlers();
   }
 
   /// Closes file streams and unsubscribes from logs.
@@ -100,21 +90,6 @@ final class LoggerService {
     Level.FINE => AnsiColors.dim,
     _ => AnsiColors.monochrome,
   };
-
-  /// Intercepts system signals to ensure files are closed correctly.
-  void _setupSignalHandlers() {
-    ProcessSignal.sigint.watch().listen((_) => _flushAndExit());
-
-    if (Platform.isWindows == false) {
-      ProcessSignal.sigterm.watch().listen((_) => _flushAndExit());
-    }
-  }
-
-  /// Clears buffers before exiting.
-  Future<void> _flushAndExit() async {
-    await dispose();
-    exit(0);
-  }
 }
 
 extension LoggerExt on Object {

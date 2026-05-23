@@ -86,7 +86,7 @@ void main() {
     });
 
     test('Error connecting to the database interrupts the process', () async {
-      when(() => mockDb.initialize()).thenThrow(DatabaseConnectionException('Timeout'));
+      when(() => mockDb.initialize()).thenThrow(const DatabaseConnectionException('Timeout'));
       when(() => mockDb.dispose()).thenAnswer((_) async => {});
 
       final result = await setupService.initialize();

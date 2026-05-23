@@ -1,6 +1,6 @@
 import 'dart:io';
-import '../di/service_locator.dart';
-import 'command_registry.dart';
+import 'package:cpw_pw/di/service_locator.dart';
+import 'package:cpw_pw/app/command_registry.dart';
 
 /// Initializes the command registry and processes command-line arguments.
 /// Returns an exit code: 0 = success, 64 = invalid use, 1 = error.
@@ -21,5 +21,5 @@ Future<int> runCli(List<String> args) async {
     registry.printMenu();
     return 64;
   }
-  return await command.action(args.skip(1).toList());
+  return command.action(args.skip(1).toList());
 }

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import 'patcher_config.dart';
-import 'config_parser.dart';
+import 'package:cpw_pw/config/patcher_config.dart';
+import 'package:cpw_pw/config/config_parser.dart';
 
 /// Configuration loader with support for:
 /// 1. Reading from the .conf file

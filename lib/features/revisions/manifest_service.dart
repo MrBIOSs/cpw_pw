@@ -1,10 +1,10 @@
 import 'dart:io';
-import '../../../config/config.dart';
-import '../../../features/security/security.dart';
-import '../../core/database/database.dart';
-import '../../core/logger/logger_service.dart';
-import '../../core/utils/utilities.dart';
-import 'models/revision_state.dart';
+import 'package:cpw_pw/config/config.dart';
+import 'package:cpw_pw/features/security/security.dart';
+import 'package:cpw_pw/core/database/database.dart';
+import 'package:cpw_pw/core/logger/logger_service.dart';
+import 'package:cpw_pw/core/utils/utilities.dart';
+import 'package:cpw_pw/features/revisions/models/revision_state.dart';
 
 /// Service for generating manifests (files.md5), incremental patches (v-N.inc) and RSA signatures.
 final class ManifestService {
@@ -58,11 +58,10 @@ final class ManifestService {
   }
 
   Future<void> _writeFilesMd5(String type, List<Map<String, dynamic>> files, int currentRev) async {
-    final sink = File(_getManifestPath(type)).openWrite();
+    final sink = File(_getManifestPath(type)).openWrite()
+      ..write('# $currentRev\n');
 
-    sink.write('# $currentRev\n');
-
-    String lastFolder = '';
+    var lastFolder = '';
     for (final f in files) {
       final folder = f['folder_base64'] as String;
       final file = f['file_base64'] as String;
@@ -89,7 +88,7 @@ final class ManifestService {
       ) async {
     await _cleanupOldPatches(type, minRev, currentRev);
 
-    for (int fromRev = minRev; fromRev < currentRev; fromRev++) {
+    for (var fromRev = minRev; fromRev < currentRev; fromRev++) {
       final diff = currentRev - fromRev;
       final patchPath = _getPatchPath(type, diff);
       final sink = File(patchPath).openWrite();
@@ -99,7 +98,7 @@ final class ManifestService {
           : '';
       sink.write('# $fromRev $currentRev$totalSize\n');
 
-      String lastFolder = '';
+      var lastFolder = '';
       for (final f in files) {
         final revision = Utils.parseInt(f['revision']);
         final added = Utils.parseInt(f['added']);
