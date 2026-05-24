@@ -31,7 +31,7 @@
 | **MySQL/PostgreSQL** | Abstract database layer, parameterized queries, and migrations |
 | **File Packing** | `[4-byte LE size][deflate(data)]` format for client compatibility |
 | **Incremental Patches** | Automated generation of `v-N.inc` for fast updates |
-| **Docker-ready** | Multi-stage builds, minimal footprint images, and health checks |
+| **Docker-ready** | Minimal footprint images and health checks |
 
 ### Roadmap
 - [ ] Integrate CPW into the **Web Admin Panel**
@@ -67,20 +67,23 @@ lib/
 │   │       ├── base64_path_encoder.dart # Path encoding
 │   │       └── rsa_utils.dart           # RSA helpers
 │   │
-│   ├── database/                     # Database management
-│   │   ├── database.dart             # DB module exports
-│   │   ├── database_interface.dart   # IDatabase (abstraction)
-│   │   ├── db_service.dart           # DB business logic
-│   │   ├── exceptions.dart           # Typed DB errors
+│   ├── database/                      # Database management
+│   │   ├── database.dart              # DB module exports
+│   │   ├── database_interface.dart    # IDatabase (abstraction)
+│   │   ├── db_service.dart            # DB business logic
+│   │   ├── exceptions.dart            # Typed DB errors
+│   │   ├── utils/
+│   │   │   └── sql_script_parser.dart # SQL script helper
 │   │   └── adapters/
-│   │       ├── mysql_adapter.dart    # MySQL implementation
-│   │       └── postgres_adapter.dart # PostgreSQL implementation
+│   │       ├── mysql_adapter.dart     # MySQL implementation
+│   │       └── postgres_adapter.dart  # PostgreSQL implementation
 │   │
 │   ├── logger/
 │   │   └── logger_service.dart      # Logging: console + files
 │   │
 │   └── utils/
 │       ├── ansi_colors.dart      # Terminal colors
+│       ├── safe_path.dart        # Paths safety
 │       └── utilities.dart        # Shared project utilities
 │
 ├── di/                           # Dependency Injection
@@ -495,6 +498,8 @@ mysql -u user -p password -e "SELECT MAX(revision) FROM files WHERE type='elemen
 
 ### Running in Docker
 
+Example using Docker. The following services are considered: pw-db, pw-web, and pw-server. pw-web includes CPW and the web pwadmin.
+
 ```yaml
 # docker-compose.yml
 services:
@@ -583,6 +588,8 @@ docker-compose exec pw-web /opt/pw/patcher/cpw listgen
 
 ### Build the image
 
+Nginx to transfer finished files to the client.
+
 ```dockerfile
 # Dockerfile
 FROM debian:bookworm-slim
@@ -607,14 +614,18 @@ RUN useradd -m -u 1000 patcher && chown -R patcher:patcher /app
 USER patcher
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD ./cpw --help || exit 1
+  CMD ./cpw || exit 1
 
-ENTRYPOINT ["./cpw"]
-CMD ["--help"]
+CMD ["sh", "-c", "nginx -g 'daemon off;' & exec /app/bin/server"]
 ```
 
 ```bash
-docker build -t cpw-patcher .
+docker build -t pw-web .
+```
+and
+
+```bash
+docker exec -it pw-web ./cpw
 ```
 
 ---
