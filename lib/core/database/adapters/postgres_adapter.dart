@@ -5,10 +5,10 @@ import 'package:cpw_pw/core/database/database_interface.dart';
 /// Implementation will be added during the migration to PostgreSQL.
 /// Currently throws [UnimplementedError] when attempting to use.
 final class PostgresAdapter implements IDatabase {
-  PostgresAdapter({required String connectionString})
-      : _connectionString = connectionString;
+  PostgresAdapter({required String connectionString});
+      // : _connectionString = connectionString;
 
-  final String _connectionString;
+  // final String _connectionString;
   // pg.Connection? _connection;
 
   @override
