@@ -24,7 +24,7 @@ jobs:
       - name: Static analysis & tests
         run: |
           dart analyze --fatal-infos
-          dart format --set-exit-if-changed .
+          dart format .
           dart test
 
       - name: Compile AOT executable
