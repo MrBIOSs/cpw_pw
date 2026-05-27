@@ -5,14 +5,14 @@ import 'package:cpw_pw/core/database/database_interface.dart';
 /// Implementation will be added during the migration to PostgreSQL.
 /// Currently throws [UnimplementedError] when attempting to use.
 final class PostgresAdapter implements IDatabase {
-  PostgresAdapter({required String connectionString});
+  // PostgresAdapter({required String connectionString});
       // : _connectionString = connectionString;
 
   // final String _connectionString;
   // pg.Connection? _connection;
 
   @override
-  bool get isConnected => false; // TODO: реализовать
+  bool get isConnected => false; // TODO(MrBIOSs): реализовать
 
   @override
   DbType get type => DbType.postgres;
@@ -27,7 +27,7 @@ final class PostgresAdapter implements IDatabase {
 
   @override
   Future<void> close() async {
-    // TODO: реализовать закрытие подключения
+    // TODO(MrBIOSs): реализовать закрытие подключения
   }
 
   @override

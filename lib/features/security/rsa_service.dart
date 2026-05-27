@@ -76,7 +76,7 @@ ${keys.publicKeyPem}
   }
 
   /// Signs a file with a private key and appends the signature to the end of the file.
-  /// Signature format: "-----BEGIN ELEMENT SIGNATURE-----\n<base64-signature>"
+  /// Signature format: "-----BEGIN ELEMENT SIGNATURE-----\n(base64-signature)"
   Future<void> signFile(String filePath) async {
     final keys =  await _getOrLoadKeys();
     final file = File(filePath);

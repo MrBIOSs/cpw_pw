@@ -21,7 +21,7 @@ final class ConfigLoader {
   }
 
   /// Applies environment variables over values from a file.
-  /// Format: CPW_<KEY_UPPER_SNAKE>
+  /// Format: CPW_(KEY_UPPER_SNAKE)
   static void _applyEnvOverrides(Map<String, String> config) {
     const envMap = {
       'DB_HOST': 'db-host',
