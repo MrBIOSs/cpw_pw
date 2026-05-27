@@ -251,6 +251,21 @@ final class RevisionService {
       await dir.create(recursive: true);
       log.fine('Created: $targetDir');
     }
+
+    try {
+      final infoDir = Directory(_getOutputDirectory('info'));
+
+      if (!infoDir.existsSync()) {
+        await infoDir.create(recursive: true);
+        log.fine('Created info directory: ${infoDir.path}');
+      }
+
+      final pidFile = File('${infoDir.path}/pid');
+      await pidFile.writeAsString('101');
+      log.fine('Created pid file with value 101');
+    } catch (e) {
+      log.severe('Failed to create info/pid structure: $e');
+    }
   }
 
   /// Initializes version files to the current revision value.

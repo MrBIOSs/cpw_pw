@@ -367,6 +367,9 @@ The client source code must include a placeholder token of sufficient size.
 2. Creates the `files/CPW/{type}/{type}/` directory structure for packaged files
 3. Initializes `version` files with the value set in `min-*-ver` (defaults to 1)
 4. Synchronizes the state with the database
+5. Creates `/info/pid` with default value 101
+
+**Attention**: delete all `*.sw` files on the original client in the `/config/(element, launcher, patcher)` folder
 
 ---
 
@@ -406,6 +409,8 @@ New revision state:
 
 Clients can now update to this revision.
 ```
+
+**Note**: Ready-made update files can be obtained from the original `Launcher` if `/patcher/server/updateserver.txt` contains a link to an open source with files
 
 ---
 

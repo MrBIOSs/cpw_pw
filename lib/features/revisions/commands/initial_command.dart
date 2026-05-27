@@ -32,7 +32,8 @@ final class InitialCommand {
           ..writeln(AnsiColors.dim('  - launcher:  revision ${state.launcherCurrentVer}'))
           ..writeln(AnsiColors.dim('  - patcher:   revision ${state.patcherCurrentVer}'))
           ..writeln()
-          ..writeln(AnsiColors.dim('Would create directories:'));
+          ..writeln(AnsiColors.dim('Would create directories:'))
+          ..writeln(AnsiColors.dim('  - info/pid'));
         for (final type in ['element', 'launcher', 'patcher']) {
           stdout
             ..writeln(AnsiColors.dim('  - ${_config.resolveSubDir(_config.patchCpwDir, type)}/'))
@@ -53,6 +54,7 @@ final class InitialCommand {
         ..writeln('  patcher:   ${AnsiColors.command(state.patcherCurrentVer)}')
         ..writeln()
         ..writeln(AnsiColors.dim('Next steps:'))
+        ..writeln(AnsiColors.dim('  - On the original client, check /patcher/server/pid.ini for the correct version (default 101)'))
         ..writeln(AnsiColors.dim('  - Add files to files/new/{element,launcher,patcher}/'))
         ..writeln(AnsiColors.dim('  - Run "./cpw new" to pack files and generate manifests'))
         ..writeln(AnsiColors.dim('  - Run "./cpw listgen" to regenerate files.md5 only'));
