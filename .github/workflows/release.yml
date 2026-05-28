@@ -28,7 +28,7 @@ jobs:
           dart test
 
       - name: Compile AOT executable
-        run: dart compile exe bin/cpw.dart -o cpw --target=linux_x64 --O3
+        run: dart compile exe bin/cpw.dart -o cpw --target-os=linux --target-arch=x64
 
       - name: Generate checksums
         run: sha256sum cpw > cpw.sha256
