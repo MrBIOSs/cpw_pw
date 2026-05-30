@@ -209,9 +209,9 @@ final class RevisionService {
             'md5': packResult.md5,
             'type': type,
             'folder': folder == '.' ? '' : folder,
-            'folderBase64': Base64PathEncoder.encodeFolder(folder == '.' ? '' : folder),
+            'folderBase64': Base64PathEncoder.encode(folder == '.' ? '' : folder),
             'file': fileName,
-            'fileBase64': Base64PathEncoder.encodeFileName(fileName),
+            'fileBase64': Base64PathEncoder.encode(fileName),
           },
         );
 
