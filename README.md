@@ -180,6 +180,8 @@ dart compile exe bin/cpw.dart -o bin/cpw
 curl -L -s "https://github.com/MrBIOSs/cpw_pw/releases/latest/download/cpw" -o ./cpw
 ```
 
+After downloading the binary, create or download the files `/config/patcher.conf` and `/config/install_mysql.sql` in the same folder.
+
 ---
 
 ## Configuration

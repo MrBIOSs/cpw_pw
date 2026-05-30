@@ -69,15 +69,31 @@ final class RsaUtils {
       ..add(ASN1Integer(key.modulus!))
       ..add(ASN1Integer(key.exponent!));
 
+    final rsaSeqBytes = rsaSeq.encodedBytes;
+    final bitStringContent = Uint8List(rsaSeqBytes.length + 1);
+    bitStringContent[0] = 0x00;
+    bitStringContent.setAll(1, rsaSeqBytes);
+
+    final bitStringContainer = ASN1OctetString(bitStringContent);
+    final bitStringBytes = bitStringContainer.encodedBytes;
+
+    bitStringBytes[0] = 0x03;
+
     final algoSeq = ASN1Sequence()
       ..add(ASN1ObjectIdentifier.fromComponentString('1.2.840.113549.1.1.1'))
       ..add(ASN1Null());
 
     final spki = ASN1Sequence()
-      ..add(algoSeq)
-      ..add(ASN1BitString(rsaSeq.encodedBytes));
+      ..add(algoSeq);
 
-    return spki.encodedBytes;
+    final spkiHeader = spki.encodedBytes;
+    final parser = ASN1Parser(spkiHeader);
+    final topLevelSeq = parser.nextObject() as ASN1Sequence;
+
+    final customBitString = ASN1Object.fromBytes(bitStringBytes);
+    topLevelSeq.add(customBitString);
+
+    return topLevelSeq.encodedBytes;
   }
 
   /// Encodes the private key in DER (RSAPrivateKey, PKCS#1).
@@ -103,7 +119,7 @@ final class RsaUtils {
       ..add(ASN1Integer(q))                      // q
       ..add(ASN1Integer(dP))                     // dP
       ..add(ASN1Integer(dQ))                     // dQ
-      ..add(ASN1Integer(qInv));                   // qInv
+      ..add(ASN1Integer(qInv));                  // qInv
 
     return seq.encodedBytes;
   }

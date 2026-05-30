@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:pointycastle/asymmetric/api.dart';
 
 import 'package:cpw_pw/core/crypto/crypto.dart';
 import 'package:cpw_pw/core/logger/logger_service.dart';
@@ -18,8 +17,8 @@ final class BinaryPatcherService {
   BinaryPatcherService({required IKeyStorage keyStorage}) : _keyStorage = keyStorage;
   final IKeyStorage _keyStorage;
 
-  // 216 Base64 + 3 '\n' = 219 bytes
-  static const _fixedKeySize = 219;
+  // 216 Base64 + 4 '\n' = 220 bytes
+  static const _fixedKeySize = 220;
 
   /// Patch the executable file, replacing the marker with a public RSA key.
   /// [executablePath] — path to the binary.
@@ -43,8 +42,7 @@ final class BinaryPatcherService {
     final keys = await _keyStorage.load();
     log.fine('Loaded public key (modulus: ${keys.modulus.bitLength} bits)');
 
-    final publicKey = _reconstructPublicKey(keys);
-    final keyData = _serializeKeyForInjection(publicKey);
+    final keyData = _serializeKeyForInjection(keys);
     log.fine('Serialized key size: ${keyData.length} bytes');
 
     final originalBytes = await file.readAsBytes();
@@ -125,27 +123,31 @@ final class BinaryPatcherService {
     return result;
   }
 
-  /// Reconstructs an RSAPublicKey from its components (for DER encoding).
-  RSAPublicKey _reconstructPublicKey(RsaKeyPair keys) {
-    return RSAPublicKey(keys.publicExponent, keys.modulus);
-  }
-
   /// Base64(DER-encoded SubjectPublicKeyInfo), broken into 4 lines (64+64+64+24).
-  Uint8List _serializeKeyForInjection(RSAPublicKey key) {
-    final der = RsaUtils.encodeSubjectPublicKeyInfo(key);
-    final base64 = base64Encode(der).replaceAll('=', '');
+  Uint8List _serializeKeyForInjection(RsaKeyPair keys) {
+    final cleanBase64 = keys.publicKeyPem
+        .replaceAll('-----BEGIN PUBLIC KEY-----', '')
+        .replaceAll('-----END PUBLIC KEY-----', '')
+        .replaceAll('\n', '')
+        .replaceAll('\r', '')
+        .replaceAll(' ', '')
+        .replaceAll('=', '');
 
-    if (base64.length < 216) {
-      throw StateError('Base64 key too short: ${base64.length} < 216');
+    log.fine('Clean database Base64 length: ${cleanBase64.length}');
+
+    if (cleanBase64.length < 216) {
+      throw StateError('Base64 key too short: ${cleanBase64.length} < 216');
     }
 
     final lines = [
-      base64.substring(0, 64),
-      base64.substring(64, 128),
-      base64.substring(128, 192),
-      base64.substring(192, 216),
+      cleanBase64.substring(0, 64),
+      cleanBase64.substring(64, 128),
+      cleanBase64.substring(128, 192),
+      cleanBase64.substring(192, 216),
     ];
-    return utf8.encode(lines.join('\n')); // 219 bytes
+    final formattedKey = '${lines.join('\n')}\n';
+
+    return utf8.encode(formattedKey); // 220 bytes
   }
 
   /// Searches for a sequence of bytes in data.

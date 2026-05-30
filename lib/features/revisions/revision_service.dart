@@ -253,7 +253,7 @@ final class RevisionService {
     }
 
     try {
-      final infoDir = Directory(_getOutputDirectory('info'));
+      final infoDir = Directory(_config.resolveSubDir(_config.patchCpwDir, 'info'));
 
       if (!infoDir.existsSync()) {
         await infoDir.create(recursive: true);

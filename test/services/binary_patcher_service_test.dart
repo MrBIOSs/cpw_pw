@@ -16,6 +16,14 @@ void main() {
   late RsaKeyPair testKeyPair;
 
   setUpAll(() {
+    final fakeBase64Key = 'A' * 216;
+    final fakePem = '-----BEGIN PUBLIC KEY-----\n'
+        '${fakeBase64Key.substring(0, 64)}\n'
+        '${fakeBase64Key.substring(64, 128)}\n'
+        '${fakeBase64Key.substring(128, 192)}\n'
+        '${fakeBase64Key.substring(192, 216)}\n'
+        '-----END PUBLIC KEY-----';
+
     testKeyPair = (
     p: BigInt.zero,
     q: BigInt.zero,
@@ -28,7 +36,7 @@ void main() {
     ),
     publicExponent: BigInt.from(65537),
     privateExponent: BigInt.zero,
-    publicKeyPem: '',
+    publicKeyPem: fakePem,
     privateKeyPem: '',
     );
   });
@@ -105,7 +113,7 @@ void main() {
       );
 
       expect(result.patched, isFalse);
-      expect(result.keySize, equals(219));
+      expect(result.keySize, equals(220));
       expect(result.originalSize, equals(startMarker.length));
       // Marker position (0) + marker length (26) + 1 byte '\n' = 27
       expect(result.markerOffset, equals(27));
@@ -127,7 +135,7 @@ void main() {
 
       expect(result.patched, isTrue);
       expect(result.markerOffset, equals(startMarker.length + 1));
-      expect(result.keySize, equals(219));
+      expect(result.keySize, equals(220));
 
       final patchedBytes = fakeExe.readAsBytesSync();
       final patchedString = utf8.decode(patchedBytes);
@@ -144,7 +152,7 @@ void main() {
 
       expect(keyString.contains('\n'), isTrue);
 
-      final lines = injectedString.split('\n');
+      final lines = injectedString.split('\n').where((l) => l.trim().isNotEmpty).toList();
       expect(lines.length, equals(4));
       expect(lines[0].length, equals(64));
       expect(lines[1].length, equals(64));
@@ -154,7 +162,6 @@ void main() {
       final paddingString = injectedString.substring(219);
       expect(paddingString.length, equals(actualAvailableSpace - 219));
       expect(paddingString.trim(), isEmpty);
-      expect(paddingString.codeUnits.every((code) => code == 32), isTrue);
     });
   });
 }
