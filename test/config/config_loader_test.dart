@@ -30,7 +30,7 @@ void main() {
 
       expect(config.dbUser, 'admin');
       expect(config.dbHost, 'localhost');
-      expect(config.removeFolders, isTrue);
+      expect(config.removeFiles, isTrue);
       expect(config.minLauncherVer, 1);
     });
 
@@ -64,13 +64,11 @@ void main() {
         db-user = u
         db-password = p
         db-name = n
-        remove-folders = no
-        remove-files = 1
-        add-size = false
+        remove-input-files = 1
+        add-file-size-to-inc = false
       ''');
 
       final config = await ConfigLoader.load(configPath: configFile.path);
-      expect(config.removeFolders, isFalse); // 'no' == false
       expect(config.removeFiles, isTrue);    // '1' == true
       expect(config.addSize, isFalse);       // 'false' == false
     });

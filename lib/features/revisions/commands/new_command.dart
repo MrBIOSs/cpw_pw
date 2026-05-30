@@ -17,7 +17,8 @@ final class NewCommand {
         ..writeln(AnsiColors.dim('  - Pack files: files/new/* to files/CPW/*'))
         ..writeln(AnsiColors.dim('  - Update database metadata'))
         ..writeln(AnsiColors.dim('  - Increment revision: current + 1'))
-        ..writeln(AnsiColors.dim('  - Generate manifests: files.md5, v-N.inc'));
+        ..writeln(AnsiColors.dim('  - Generate manifests: files.md5, v-N.inc'))
+        ..writeln(AnsiColors.dim('  - Remove input files if remove-input-files = true.'));
 
       return 0;
     }

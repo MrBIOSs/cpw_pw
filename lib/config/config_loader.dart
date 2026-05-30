@@ -88,9 +88,8 @@ final class ConfigLoader {
       minElementVer: get('min-element-ver', parse: int.parse, defaultValue: 1),
 
       // Flags
-      removeFolders: get('remove-folders', parse: parseBool, defaultValue: true),
-      removeFiles: get('remove-files', parse: parseBool, defaultValue: true),
-      addSize: get('add-size', parse: parseBool, defaultValue: true),
+      removeFiles: get('remove-input-files', parse: parseBool, defaultValue: true),
+      addSize: get('add-file-size-to-inc', parse: parseBool, defaultValue: true),
     );
   }
 

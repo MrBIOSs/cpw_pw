@@ -35,7 +35,6 @@ void main() {
       minLauncherVer: 1,
       minPatcherVer: 1,
       minElementVer: 2,
-      removeFolders: false,
       removeFiles: false,
       addSize: true,
     );

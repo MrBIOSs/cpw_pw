@@ -399,6 +399,7 @@ The client source code must include a placeholder token of sufficient size.
 5. Writes metadata to the database (via UPSERT)
 6. Automatically generates manifests (`files.md5`, `v-N.inc`, along with the RSA signature)
 7. Updates the `version` files
+8. **Removes** input files if `remove-input-files` flag is **true**.
 
 **Result:**
 ```

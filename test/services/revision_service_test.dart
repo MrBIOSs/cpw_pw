@@ -33,7 +33,6 @@ void main() {
       minLauncherVer: 10,
       minPatcherVer: 20,
       minElementVer: 30,
-      removeFolders: false,
       removeFiles: false,
       addSize: true,
     );

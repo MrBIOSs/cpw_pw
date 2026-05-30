@@ -18,7 +18,6 @@ final class PatcherConfig {
     required this.minLauncherVer,
     required this.minPatcherVer,
     required this.minElementVer,
-    required this.removeFolders,
     required this.removeFiles,
     required this.addSize,
   });
@@ -43,7 +42,6 @@ final class PatcherConfig {
   final int minElementVer;
 
   // Behavior Flags
-  final bool removeFolders;
   final bool removeFiles;
   final bool addSize;
 

@@ -163,13 +163,13 @@ final class RevisionService {
 
   /// Packs files from new/{type}/ to CPW/{type}/{type}/ and writes metadata to the database.
   Future<void> _packFiles(String type, RevisionState state, {bool force = false}) async {
-    final sourceDir = _config.resolveSubDir(_config.patchNewDir, type);
-    final targetDir = _getOutputDirectory(type);
+    final sourcePath = _config.resolveSubDir(_config.patchNewDir, type);
+    final targetPath = _getOutputDirectory(type);
     final nextRev = state.getCurrent(type);
-    final source = Directory(sourceDir);
+    final sourceDir = Directory(sourcePath);
 
-    if (!source.existsSync()) {
-      log.fine('Source directory empty: $sourceDir');
+    if (!sourceDir.existsSync()) {
+      log.fine('Source directory empty: $sourcePath');
       return;
     }
 
@@ -180,16 +180,16 @@ final class RevisionService {
       );
     }
 
-    await for (final entity in source.list(recursive: true)) {
+    await for (final entity in sourceDir.list(recursive: true)) {
       if (entity is File && _isIncluded(entity)) {
         final relative = _toRelativePath(entity.path, type);
 
         // base64(data/config.ini) to ZGF0YV9jb25maWcuaW5p
         final targetName = Base64PathEncoder.encode(relative);
-        final targetPath = path.join(targetDir, targetName);
+        final targetPathFile = path.join(targetPath, targetName);
 
         // [4-byte LE size][deflate(data)]
-        final packResult = await _packer.pack(entity, File(targetPath));
+        final packResult = await _packer.pack(entity, File(targetPathFile));
         final folder = path.dirname(relative);
         final fileName = path.basename(relative);
 
@@ -218,6 +218,11 @@ final class RevisionService {
         log.fine('Packed & recorded: $relative to $targetName (rev $nextRev)');
       }
     }
+
+    await _cleanupSourceDirectory(
+      sourceDir,
+      removeFiles: _config.removeFiles,
+    );
   }
 
   /// excludes service files.
@@ -288,6 +293,40 @@ final class RevisionService {
       await file.writeAsString('$version\n');
       log.fine('Written $version to $versionPath');
     }
+  }
+
+  /// Cleans up the source directory after packing.
+  /// If removeFiles=true - removes files, then removes all empty folders.
+  Future<void> _cleanupSourceDirectory(
+      Directory sourceDir, {
+        required bool removeFiles,
+      }) async {
+    if (!removeFiles) return;
+
+    log.fine('Cleaning up source directory: ${sourceDir.path}');
+    final rootPath = sourceDir.path;
+
+    await for (final entity in sourceDir.list(recursive: true)) {
+      if (entity is File) {
+        try { await entity.delete(); } catch (_) {}
+      }
+    }
+
+    final dirs = <Directory>[];
+    await for (final entity in sourceDir.list(recursive: true)) {
+      if (entity is Directory && entity.path != rootPath) {
+        dirs.add(entity);
+      }
+    }
+    dirs.sort((a, b) => path.split(b.path).length.compareTo(path.split(a.path).length));
+
+    for (final dir in dirs) {
+      try {
+        await dir.delete();
+      } catch (_) {}
+    }
+
+    log.fine('Source cleanup completed');
   }
 
   /// Returns the path to the output directory for the type.

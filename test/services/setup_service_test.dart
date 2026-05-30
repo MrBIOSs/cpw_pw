@@ -25,7 +25,7 @@ void main() {
       dbHost: 'localhost', dbPort: 3306, dbUser: 'u', dbPassword: 'p', dbName: 'n',
       patchPath: 'files', patchNewDir: 'new', patchCpwDir: 'cpw',
       minLauncherVer: 1, minPatcherVer: 1, minElementVer: 1,
-      removeFolders: true, removeFiles: true, addSize: true,
+      removeFiles: true, addSize: true,
     );
     mockDb = MockDbService();
     mockRsa = MockRsaService();
