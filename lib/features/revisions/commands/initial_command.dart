@@ -31,6 +31,7 @@ final class InitialCommand {
           ..writeln(AnsiColors.dim('  - element:   revision ${state.elementCurrentVer}'))
           ..writeln(AnsiColors.dim('  - launcher:  revision ${state.launcherCurrentVer}'))
           ..writeln(AnsiColors.dim('  - patcher:   revision ${state.patcherCurrentVer}'))
+          ..writeln(AnsiColors.dim('  - DB:   resetting "files" table'))
           ..writeln()
           ..writeln(AnsiColors.dim('Would create directories:'))
           ..writeln(AnsiColors.dim('  - info/pid'));

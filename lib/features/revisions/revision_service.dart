@@ -21,14 +21,14 @@ final class RevisionService {
   final PackerService _packer;
   final DbService _dbService;
 
-  RevisionState get getInitialState => _loadInitialStateFromConfig();
+  RevisionState get getInitialState => _config.getMinRevisionState();
 
   /// Creates the initial (base) revision.
   /// Returns information about the created revision.
   Future<RevisionState> createInitial() async {
     log.info('Initializing base revision state...');
 
-    final initialState = _loadInitialStateFromConfig();
+    final initialState = _config.getMinRevisionState();
     log.fine('Loaded initial state from config: $initialState');
 
     await _createInputStructure();
@@ -36,6 +36,23 @@ final class RevisionService {
 
     await _createOutputStructure(initialState);
     log.fine('Output directory structure created');
+
+    try {
+      log.info('Preparing database for initial state...');
+
+      if (!_dbService.isConnected) {
+        await _dbService.initialize();
+      }
+      log.info('Clearing "files" table...');
+
+      await _dbService.execute('TRUNCATE TABLE `files`');
+
+      log.info('Table "files" cleared successfully');
+    } catch (e) {
+      log.severe('Failed to clear "files" table during initialization: $e');
+    } finally {
+      await _dbService.dispose();
+    }
 
     await _writeVersionFiles(initialState);
     log
@@ -46,11 +63,11 @@ final class RevisionService {
 
   /// Returns the current state of revisions (from DB).
   Future<RevisionState> getCurrentState() async {
-    await _dbService.initialize();
-    if (!_dbService.isConnected) {
-      return _readStateFromFiles();
-    }
     try {
+      if (!_dbService.isConnected) {
+        await _dbService.initialize();
+      }
+
       final result = await _dbService.execute(
         'SELECT type, MAX(revision) as max_rev FROM files GROUP BY type',
       );
@@ -90,9 +107,10 @@ final class RevisionService {
         ? 'Re-creating current revision: ${current.elementCurrentVer}'
         : 'Creating next revision: ${current.elementCurrentVer} to ${nextState.elementCurrentVer}');
 
-    await _dbService.initialize();
-
     try {
+      if (!_dbService.isConnected) {
+        await _dbService.initialize();
+      }
       for (final type in ['element', 'launcher', 'patcher']) {
         await _packFiles(type, nextState, force: force);
       }
@@ -207,18 +225,6 @@ final class RevisionService {
     final name = path.basename(file.path).toLowerCase();
     return !['.svn', '_svn', 'version.sw', 'thumbs.db', '.ds_store']
         .contains(name) && !name.startsWith('.');
-  }
-
-  RevisionState _loadInitialStateFromConfig() {
-    final element = _config.minElementVer;
-    final launcher = _config.minLauncherVer;
-    final patcher = _config.minPatcherVer;
-
-    return (
-    elementCurrentVer: element,
-    launcherCurrentVer: launcher,
-    patcherCurrentVer: patcher,
-    );
   }
 
   /// Creates an input directory structure (new/{type}/).

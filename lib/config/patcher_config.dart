@@ -1,4 +1,5 @@
 import 'package:path/path.dart' as path;
+import 'package:cpw_pw/features/revisions/revisions.dart';
 import 'package:cpw_pw/core/utils/safe_path.dart';
 
 /// Immutable patcher configuration.
@@ -55,10 +56,11 @@ final class PatcherConfig {
     return resolvePath(relative);
   }
 
-  int getMinRevForType(String type) => switch (type) {
-    'element' => minElementVer,
-    'launcher' => minLauncherVer,
-    'patcher' => minPatcherVer,
-    _ => throw ArgumentError('Unknown type: $type'),
-  };
+  RevisionState getMinRevisionState() {
+    return (
+    elementCurrentVer: minElementVer,
+    launcherCurrentVer: minLauncherVer,
+    patcherCurrentVer: minPatcherVer,
+    );
+  }
 }

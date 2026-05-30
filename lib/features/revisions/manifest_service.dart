@@ -23,7 +23,7 @@ final class ManifestService {
   /// Called by "new" (automatically) and "listgen" (manually for restoration).
   Future<void> generateManifests(String type, RevisionState state) async {
     final currentRev = state.getCurrent(type);
-    final minRev = _config.getMinRevForType(type);
+    final minRev = _config.getMinRevisionState().getCurrent(type);
 
     if (currentRev < minRev) {
       throw StateError('Current revision ($currentRev) is less than minimum ($minRev). Run `./cpw initial` first.');

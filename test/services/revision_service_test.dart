@@ -87,6 +87,9 @@ void main() {
   group('getCurrentState', () {
     test('Falls back to files and returns 1 if DB is not connected and files do not exist', () async {
       when(() => mockDb.isConnected).thenReturn(false);
+      when(() => mockDb.initialize()).thenThrow(const DatabaseQueryException('Connection failed'));
+      when(() => mockDb.initialize()).thenAnswer((_) async {});
+      when(() => mockDb.execute(any(), any())).thenThrow(const DatabaseQueryException('Query failed'));
 
       final state = await revisionService.getCurrentState();
 
@@ -97,6 +100,8 @@ void main() {
 
     test('Falls back to files and parses them if DB is not connected', () async {
       when(() => mockDb.isConnected).thenReturn(false);
+      when(() => mockDb.initialize()).thenAnswer((_) async {});
+      when(() => mockDb.execute(any(), any())).thenThrow(const DatabaseQueryException('DB Error'));
 
       File(realConfig.resolvePath('patch/cpw/element/version'))
         ..createSync(recursive: true)
