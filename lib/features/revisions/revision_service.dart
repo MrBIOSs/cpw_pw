@@ -254,10 +254,16 @@ final class RevisionService {
     for (final type in ['element', 'launcher', 'patcher']) {
       final targetDir = _getOutputDirectory(type);
       final dir = Directory(targetDir);
+      final baseTypeDir = Directory(_config.resolveSubDir(_config.patchCpwDir, type));
 
-      if (dir.existsSync()) {
-        log.fine('Directory already exists: $targetDir');
-        continue;
+      if (baseTypeDir.existsSync()) {
+        log.info('Output directory and its subfolders exist, performing deep cleanup: ${baseTypeDir.path}');
+        try {
+          await baseTypeDir.delete(recursive: true);
+          log.fine('Fully removed old directory: ${baseTypeDir.path}');
+        } catch (e) {
+          log.severe('Failed to perform deep cleanup on ${baseTypeDir.path}: $e');
+        }
       }
 
       await dir.create(recursive: true);
