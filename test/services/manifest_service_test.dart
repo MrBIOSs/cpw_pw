@@ -95,7 +95,7 @@ void main() {
       final dbRows = [
         {
           'md5': 'md5_file1',
-          'folder_base64': 'folder1/',
+          'folder_base64': 'folder1',
           'file_base64': 'file1.txt',
           'revision': 2,
           'added': 2,
@@ -103,7 +103,7 @@ void main() {
         },
         {
           'md5': 'md5_file2',
-          'folder_base64': 'folder1/',
+          'folder_base64': 'folder1',
           'file_base64': 'file2.txt',
           'revision': 3,
           'added': 2,
@@ -126,13 +126,13 @@ void main() {
       final manifestContent = manifestFile.readAsLinesSync();
       expect(manifestContent[0], '# 3');
       expect(manifestContent[1], 'md5_file1 folder1/file1.txt');
-      expect(manifestContent[2], 'md5_file2 file2.txt');
+      expect(manifestContent[2], 'md5_file2 folder1/file2.txt');
 
       final versionFile = File('$outputDirPath/version');
       expect(versionFile.existsSync(), true);
       expect(versionFile.readAsStringSync(), '3\n');
 
-      final patchDiff = File('$outputDirPath/v-1.inc');
+      final patchDiff = File('$outputDirPath/v-2.inc');
       expect(patchDiff.existsSync(), true);
 
       final patchDiff2Lines = patchDiff.readAsLinesSync();
@@ -163,8 +163,8 @@ void main() {
       final outputDirPath = mockConfig.resolvePath('${mockConfig.patchPath}/${mockConfig.patchCpwDir}/element');
       Directory(outputDirPath).createSync(recursive: true);
 
-      final oldPatch = File('$outputDirPath/v-4.inc')..createSync();
-      final validPatch = File('$outputDirPath/v-2.inc')..createSync();
+      final oldPatch = File('$outputDirPath/v-1.inc')..createSync();
+      final validPatch = File('$outputDirPath/v-3.inc')..createSync();
 
       await manifestService.generateManifests('element', state);
 

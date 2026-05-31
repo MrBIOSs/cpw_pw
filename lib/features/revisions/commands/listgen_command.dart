@@ -22,9 +22,7 @@ final class ListgenCommand {
     try {
       final revisionService = di.getIt<RevisionService>();
       final manifestService = di.getIt<ManifestService>();
-
-      await revisionService.syncVersionFilesToDb();
-      final state = await revisionService.getCurrentState();
+      final state = await revisionService.syncVersionFilesToDb();
 
       stdout
         ..writeln(AnsiColors.heading('Regenerating manifests from current DB state...'))

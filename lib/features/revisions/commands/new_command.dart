@@ -44,7 +44,6 @@ final class NewCommand {
         ..writeln(AnsiColors.heading('Creating next revision...'))
         ..writeln();
 
-      await revisionService.syncVersionFilesToDb();
       final state = await revisionService.createNext(force: isForce);
       stdout.writeln(AnsiColors.success('  Files packed & database updated'));
 

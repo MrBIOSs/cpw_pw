@@ -62,15 +62,13 @@ final class ManifestService {
     final sink = File(_getManifestPath(type)).openWrite()
       ..write('# $currentRev\n');
 
-    var lastFolder = '';
     for (final f in files) {
       final folder = f['folder_base64'] as String;
       final file = f['file_base64'] as String;
       final md5 = f['md5'] as String;
 
-      if (folder != lastFolder) {
-        lastFolder = folder;
-        sink.write('$md5 $folder$file\n');
+      if (folder.isNotEmpty) {
+        sink.write('$md5 $folder/$file\n');
       } else {
         sink.write('$md5 $file\n');
       }
@@ -90,8 +88,7 @@ final class ManifestService {
     await _cleanupOldPatches(type, minRev, currentRev);
 
     for (var fromRev = minRev; fromRev < currentRev; fromRev++) {
-      final diff = currentRev - fromRev;
-      final patchPath = _getPatchPath(type, diff);
+      final patchPath = _getPatchPath(type, fromRev);
       final sink = File(patchPath).openWrite();
 
       final totalSize = _config.addSize
@@ -99,7 +96,6 @@ final class ManifestService {
           : '';
       sink.write('# $fromRev $currentRev$totalSize\n');
 
-      var lastFolder = '';
       for (final f in files) {
         final revision = Utils.parseInt(f['revision']);
         final added = Utils.parseInt(f['added']);
@@ -111,9 +107,8 @@ final class ManifestService {
           // '+' = new file in this patch, '!' = changed
           final prefix = (added == revision) ? '+' : '!';
 
-          if (folder != lastFolder) {
-            lastFolder = folder;
-            sink.write('$prefix$md5 $folder$file\n');
+          if (folder.isNotEmpty) {
+            sink.write('$prefix$md5 $folder/$file\n');
           } else {
             sink.write('$prefix$md5 $file\n');
           }
@@ -133,14 +128,13 @@ final class ManifestService {
 
     await for (final entity in dir.list()) {
       if (entity is File && entity.path.endsWith('.inc')) {
-        final name = entity.path.split('/').last;
+        final name = path.basename(entity.path);
         final match = RegExp(r'v-(\d+)\.inc').firstMatch(name);
 
         if (match != null) {
-          final diff = int.parse(match.group(1)!);
-          final impliedFrom = currentRev - diff;
+          final fromRev = int.parse(match.group(1)!);
 
-          if (impliedFrom < minRev || impliedFrom >= currentRev) {
+          if (fromRev < minRev || fromRev >= currentRev) {
             await entity.delete();
           }
         }
@@ -160,8 +154,8 @@ final class ManifestService {
 
   /// Path to incremental patch.
   /// Example: /app/files/CPW/element/v-3.inc
-  String _getPatchPath(String type, int diff) =>
-      path.join(_config.resolveSubDir(_config.patchCpwDir, type), 'v-$diff.inc');
+  String _getPatchPath(String type, int fromRev) =>
+      path.join(_config.resolveSubDir(_config.patchCpwDir, type), 'v-$fromRev.inc');
 
   /// Example: /app/files/CPW/element/files.md5
   String _getManifestPath(String type) =>

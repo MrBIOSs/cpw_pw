@@ -61,40 +61,9 @@ final class RevisionService {
     return initialState;
   }
 
-  /// Returns the current state of revisions (from DB).
-  Future<RevisionState> getCurrentState() async {
-    try {
-      if (!_dbService.isConnected) {
-        await _dbService.initialize();
-      }
-
-      final result = await _dbService.execute(
-        'SELECT type, MAX(revision) as max_rev FROM files GROUP BY type',
-      );
-
-      final rows = result.rows;
-      int getRev(String type, int fallback) {
-        return rows.where((r) => r['type'] == type)
-            .map((r) => Utils.parseInt(r['max_rev']))
-            .firstOrNull ?? fallback;
-      }
-
-      return (
-      elementCurrentVer: getRev('element', 1),
-      launcherCurrentVer: getRev('launcher', 1),
-      patcherCurrentVer:  getRev('patcher', 1),
-      );
-    } on DatabaseQueryException catch (e) {
-      log.fine('Failed to read revision state from DB, falling back to files: $e');
-      return _readStateFromFiles();
-    } finally {
-      await _dbService.dispose();
-    }
-  }
-
   /// Packs files, writes to the database, increments the version.
   Future<RevisionState> createNext({bool force = false}) async {
-    final current = await getCurrentState();
+    final current = await syncVersionFilesToDb();
     final nextState = force
         ? current
         :(
@@ -125,8 +94,8 @@ final class RevisionService {
   }
 
   /// Synchronizes version files with the current state from the database.
-  Future<void> syncVersionFilesToDb() async {
-    final state = await getCurrentState();
+  Future<RevisionState> syncVersionFilesToDb() async {
+    final state = await _getCurrentState();
 
     for (final entry in [
       ('element', state.elementCurrentVer),
@@ -141,6 +110,38 @@ final class RevisionService {
         log.warning('Version file for $type was out of sync ($currentContent to $rev). Auto-correcting.');
         await file.writeAsString('$rev\n');
       }
+    }
+    return state;
+  }
+
+  /// Returns the current state of revisions (from DB).
+  Future<RevisionState> _getCurrentState() async {
+    try {
+      if (!_dbService.isConnected) {
+        await _dbService.initialize();
+      }
+
+      final result = await _dbService.execute(
+        'SELECT type, MAX(revision) as max_rev FROM files GROUP BY type',
+      );
+
+      final rows = result.rows;
+      int getRev(String type, int fallback) {
+        return rows.where((r) => r['type'] == type)
+            .map((r) => Utils.parseInt(r['max_rev']))
+            .firstOrNull ?? fallback;
+      }
+
+      return (
+      elementCurrentVer: getRev('element', 1),
+      launcherCurrentVer: getRev('launcher', 1),
+      patcherCurrentVer:  getRev('patcher', 1),
+      );
+    } on DatabaseQueryException catch (e) {
+      log.fine('Failed to read revision state from DB, falling back to files: $e');
+      return _readStateFromFiles();
+    } finally {
+      await _dbService.dispose();
     }
   }
 
