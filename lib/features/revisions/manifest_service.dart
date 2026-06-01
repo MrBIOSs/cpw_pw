@@ -21,13 +21,33 @@ final class ManifestService {
 
   /// Generates all artifacts for the specified content type.
   /// Called by "new" (automatically) and "listgen" (manually for restoration).
-  Future<void> generateManifests(String type, RevisionState state) async {
-    final currentRev = state.getCurrent(type);
+  /// [isInitial] - if true, creates an empty baseline files.md5 for rev 1 with a signature.
+  Future<void> generateManifests(String type, RevisionState state, {bool isInitial = false}) async {
     final minRev = _config.getMinRevisionState().getCurrent(type);
+    final currentRev = isInitial ? minRev : state.getCurrent(type);
+
 
     if (currentRev < minRev) {
       throw StateError('Current revision ($currentRev) is less than minimum ($minRev). Run `./cpw initial` first.');
     }
+
+    if (isInitial) {
+      log.info('Generating initial empty baseline manifest for $type (rev $currentRev)...');
+
+      final sink = File(_getManifestPath(type)).openWrite()
+        ..write('# $currentRev\n');
+      await sink.flush();
+      await sink.close();
+      log.fine('Empty baseline files.md5 written');
+
+      await _rsa.signFile(_getManifestPath(type));
+      log.fine('RSA signature appended to baseline manifest');
+
+      await File(_getVersionPath(type)).writeAsString('$currentRev\n');
+      log.info('$type initial manifest completed successfully');
+      return;
+    }
+
     log.info('Generating manifests for $type (rev $minRev to $currentRev)...');
 
     await _db.initialize();

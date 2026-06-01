@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -39,6 +40,7 @@ void main() {
       addSize: true,
     );
 
+    registerFallbackValue(File(''));
     when(() => mockRsa.signFile(any())).thenAnswer((_) async {});
     when(() => mockDb.initialize()).thenAnswer((_) async {});
     when(() => mockDb.dispose()).thenAnswer((_) async {});
@@ -82,6 +84,8 @@ void main() {
           .thenAnswer((_) async => emptyResult);
       await manifestService.generateManifests('element', state);
 
+      verify(() => mockDb.initialize()).called(1);
+      verify(() => mockDb.dispose()).called(1);
       verifyNever(() => mockRsa.signFile(any()));
     });
 
@@ -120,7 +124,7 @@ void main() {
 
       await manifestService.generateManifests('element', state);
 
-      final manifestFile = File('$outputDirPath/files.md5');
+      final manifestFile = File(path.join(outputDirPath, 'files.md5'));
       expect(manifestFile.existsSync(), true);
 
       final manifestContent = manifestFile.readAsLinesSync();
@@ -128,16 +132,19 @@ void main() {
       expect(manifestContent[1], 'md5_file1 folder1/file1.txt');
       expect(manifestContent[2], 'md5_file2 folder1/file2.txt');
 
-      final versionFile = File('$outputDirPath/version');
+      final versionFile = File(path.join(outputDirPath, 'version'));
       expect(versionFile.existsSync(), true);
       expect(versionFile.readAsStringSync(), '3\n');
 
-      final patchDiff = File('$outputDirPath/v-2.inc');
-      expect(patchDiff.existsSync(), true);
+      final patchFile = File(path.join(outputDirPath, 'v-2.inc'));
+      expect(patchFile.existsSync(), true);
 
-      final patchDiff2Lines = patchDiff.readAsLinesSync();
+      final patchDiff2Lines = patchFile.readAsLinesSync();
       expect(patchDiff2Lines[0], '# 2 3 200'); // 200 size
       expect(patchDiff2Lines[1], '!md5_file2 folder1/file2.txt'); // added(2) != revision(3) - '!'
+
+      verify(() => mockRsa.signFile(manifestFile.path)).called(1);
+      verify(() => mockRsa.signFile(patchFile.path)).called(1);
     });
 
     test('Successfully cleans up old .inc files that are out of revision range', () async {
@@ -170,6 +177,39 @@ void main() {
 
       expect(oldPatch.existsSync(), false, reason: 'Old patch outside minRev should be removed');
       expect(validPatch.existsSync(), true, reason: 'Patch within range must remain/be overwritten');
+    });
+
+    test('With the isInitial flag, creates an empty manifest of the base version without queries to the database.',
+            () async {
+      const state = (
+      elementCurrentVer: 99,
+      launcherCurrentVer: 1,
+      patcherCurrentVer: 1,
+      );
+
+      final outputDirPath = mockConfig.resolvePath('${mockConfig.patchPath}/${mockConfig.patchCpwDir}/element');
+      Directory(outputDirPath).createSync(recursive: true);
+
+      await manifestService.generateManifests('element', state, isInitial: true);
+
+      verifyNever(() => mockDb.initialize());
+      verifyNever(() => mockDb.execute(any(), any()));
+
+      final manifestFile = File(path.join(outputDirPath, 'files.md5'));
+      expect(manifestFile.existsSync(), isTrue);
+
+      final manifestLines = manifestFile.readAsLinesSync();
+      expect(manifestLines[0], equals('# 2'));
+      expect(manifestLines.length, equals(1));
+
+      final versionFile = File(path.join(outputDirPath, 'version'));
+      expect(versionFile.existsSync(), isTrue);
+      expect(versionFile.readAsStringSync(), equals('2\n'));
+
+      final incFiles = Directory(outputDirPath).listSync().where((e) => e.path.endsWith('.inc'));
+      expect(incFiles, isEmpty);
+
+      verify(() => mockRsa.signFile(manifestFile.path)).called(1);
     });
   });
 }

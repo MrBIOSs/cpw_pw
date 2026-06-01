@@ -4,7 +4,7 @@ import 'package:cpw_pw/config/patcher_config.dart';
 import 'package:cpw_pw/core/logger/logger_service.dart';
 
 /// Environment validator before the idea.
-final class SetupValidator {
+class SetupValidator {
   SetupValidator(this._config);
 
   final PatcherConfig _config;

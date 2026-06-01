@@ -27,13 +27,7 @@ void main() {
     testKeyPair = (
     p: BigInt.zero,
     q: BigInt.zero,
-    modulus: BigInt.parse(
-        '1222851412030062489240409749102485501064846430310248501248501648493'
-            '1024850124850164849310248501248501648493102485012485016484931024850'
-            '1248501648493102485012485016484931024850124850164849310248501248501'
-            '6484931024850124850164849310248501248501648493102485012485016484931'
-            '02485012485016484931024850124850164849313'
-    ),
+    modulus: BigInt.from(1024),
     publicExponent: BigInt.from(65537),
     privateExponent: BigInt.zero,
     publicKeyPem: fakePem,
@@ -101,6 +95,31 @@ void main() {
       );
     });
 
+    test('Throws a StateError if the key inside keyStorage is shorter than 216 symbols.', () async {
+      final invalidKeyPair = (
+      p: BigInt.zero,
+      q: BigInt.zero,
+      modulus: BigInt.from(1),
+      publicExponent: BigInt.from(1),
+      privateExponent: BigInt.zero,
+      publicKeyPem: '-----BEGIN PUBLIC KEY-----\nSHORT_KEY\n-----END PUBLIC KEY-----',
+      privateKeyPem: '',
+      );
+      when(() => mockStorage.load()).thenAnswer((_) async => invalidKeyPair);
+
+      final fakeExe = File('${tempDir.path}/launcher.exe')
+        ..writeAsStringSync('-----BEGIN PUBLIC KEY-----\n${'0' * 300}\n-----END PUBLIC KEY-----');
+
+      expect(
+            () => patcherService.patchExecutable(executablePath: fakeExe.path),
+        throwsA(isA<StateError>().having(
+              (e) => e.message,
+          'message',
+          contains('Base64 key too short'),
+        )),
+      );
+    });
+
     test('In isHelp: true mode, returns the correct PatchResult, but does not modify the file.',
             () async {
       const startMarker = '-----BEGIN PUBLIC KEY-----';
@@ -148,20 +167,20 @@ void main() {
 
       final injectedBytes = patchedBytes.sublist(result.markerOffset, result.markerOffset + actualAvailableSpace);
       final injectedString = utf8.decode(injectedBytes);
-      final keyString = injectedString.substring(0, 219);
+      final keyString = injectedString.substring(0, 220);
 
-      expect(keyString.contains('\n'), isTrue);
+      expect(keyString.endsWith('\n'), isTrue);
 
-      final lines = injectedString.split('\n').where((l) => l.trim().isNotEmpty).toList();
-      expect(lines.length, equals(4));
+      final lines = keyString.split('\n');
       expect(lines[0].length, equals(64));
       expect(lines[1].length, equals(64));
       expect(lines[2].length, equals(64));
-      expect(lines[3].trim().length, equals(24));
+      expect(lines[3].length, equals(24));
+      expect(lines[4], isEmpty);
 
-      final paddingString = injectedString.substring(219);
-      expect(paddingString.length, equals(actualAvailableSpace - 219));
-      expect(paddingString.trim(), isEmpty);
+      final paddingString = injectedString.substring(220);
+      expect(paddingString.length, equals(actualAvailableSpace - 220));
+      expect(paddingString.codeUnits.every((code) => code == 32), isTrue);
     });
   });
 }

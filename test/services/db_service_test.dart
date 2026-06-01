@@ -34,20 +34,40 @@ void main() {
       addSize: true,
     );
     dbService = DbService(config: mockConfig, adapter: mockDb);
-
-    when(() => mockDb.type).thenReturn(DbType.mysql);
-    when(() => mockDb.connect()).thenAnswer((_) async => {});
-    when(() => mockDb.close()).thenAnswer((_) async => {});
   });
 
   tearDown(() async {
-    await tempDir.delete(recursive: true);
+    if (tempDir.existsSync()) {
+      tempDir.deleteSync(recursive: true);
+    }
+  });
+
+  group('DbService', () {
+    test('Returns metadata correctly (type, isConnected)', () {
+      when(() => mockDb.type).thenReturn(DbType.mysql);
+      when(() => mockDb.isConnected).thenReturn(true);
+
+      expect(dbService.type, DbType.mysql);
+      expect(dbService.isConnected, isTrue);
+    });
   });
 
   group('DbService.initialize', () {
     test('should call connect on adapter', () async {
+      when(() => mockDb.connect()).thenAnswer((_) async {});
       await dbService.initialize();
       verify(() => mockDb.connect()).called(1);
+    });
+  });
+
+  group('DbService.execute', () {
+    test('execute translates the request and parameters to the adapter', () async {
+      final expectedResult = (affectedRows: 1, rows: <Map<String, dynamic>> []);
+      when(() => mockDb.execute('SELECT * FROM users', {'id': 1}))
+          .thenAnswer((_) async => expectedResult);
+
+      final result = await dbService.execute('SELECT * FROM users', {'id': 1});
+      expect(result, equals(expectedResult));
     });
   });
 
@@ -84,6 +104,26 @@ void main() {
 
       expect(missing, isEmpty);
     });
+
+    test('Adds a table to missing if both the main query and the fallback check fail.', () async {
+      when(() => mockDb.execute(any(that: contains('information_schema')), any()))
+          .thenThrow(Exception('Access denied'));
+      when(() => mockDb.execute(any(that: contains('LIMIT 0')), any()))
+          .thenThrow(const DatabaseQueryException('Table does not exist'));
+
+      final missing = await dbService.checkRequiredTables(['files']);
+      expect(missing, contains('files'));
+    });
+  });
+
+  group('DbService.runTransaction ', () {
+    test('runTransaction correctly proxies the call', () async {
+      when(() => mockDb.runTransaction<String>(any()))
+          .thenAnswer((invocation) async => 'transaction_success');
+
+      final result = await dbService.runTransaction((tx) async => 'success');
+      expect(result, equals('transaction_success'));
+    });
   });
 
   group('DbService.runInstallScript', () {
@@ -95,21 +135,28 @@ void main() {
     });
 
     test('should read file and call executeScript', () async {
-      final scriptFile = File(p.join(tempDir.path, 'install_mysql.sql'));
-      await scriptFile.writeAsString('CREATE TABLE test;');
+      when(() => mockDb.type).thenReturn(DbType.mysql);
+
+      final scriptDir = Directory(p.join(tempDir.path, 'config'))..createSync();
+      File(p.join(scriptDir.path, 'install_mysql.sql'))
+        .writeAsStringSync('CREATE TABLE files; INSERT INTO files;');
 
       when(() => mockDb.executeScript(any(), onProgress: any(named: 'onProgress')))
-          .thenAnswer((_) async => (totalQueries: 1, successfulQueries: 1, results: <QueryResult>[]));
+          .thenAnswer((_) async => (totalQueries: 2, successfulQueries: 2, results: <QueryResult>[]));
 
-      await dbService.runInstallScript(customPath: scriptFile.path);
+      final result = await dbService.runInstallScript();
 
-      verify(() => mockDb.executeScript('CREATE TABLE test;', onProgress: any(named: 'onProgress'))).called(1);
+      expect(result.successfulQueries, equals(2));
+      expect(result.totalQueries, equals(2));
+      verify(() => mockDb.executeScript('CREATE TABLE files; INSERT INTO files;', onProgress: any(named: 'onProgress')))
+          .called(1);
     });
   });
 
   group('DbService.dispose', () {
     test('should close connection if it was connected', () async {
       when(() => mockDb.isConnected).thenReturn(true);
+      when(() => mockDb.close()).thenAnswer((_) async {});
       await dbService.dispose();
       verify(() => mockDb.close()).called(1);
     });

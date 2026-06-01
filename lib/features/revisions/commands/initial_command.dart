@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:cpw_pw/config/patcher_config.dart';
 import 'package:cpw_pw/core/utils/ansi_colors.dart';
 import 'package:cpw_pw/di/service_locator.dart' as di;
-import 'package:cpw_pw/features/revisions/revision_service.dart';
+import 'package:cpw_pw/features/revisions/revisions.dart';
 
 /// Command "./cpw initial".
 final class InitialCommand {
@@ -19,6 +19,7 @@ final class InitialCommand {
 
     try {
       final revisionService = di.getIt<RevisionService>();
+      final manifestService = di.getIt<ManifestService>();
 
       stdout
         ..writeln(AnsiColors.heading('Creating initial revision...'))
@@ -46,7 +47,12 @@ final class InitialCommand {
 
       final state = await revisionService.createInitial();
 
+      stdout.writeln(AnsiColors.dim('Generating manifests...'));
+      for (final type in ['element', 'launcher', 'patcher']) {
+        await manifestService.generateManifests(type, state, isInitial: true);
+      }
       stdout
+        ..writeln(AnsiColors.success('Manifests generated & signed'))
         ..writeln(AnsiColors.success('Initial revision created successfully!'))
         ..writeln()
         ..writeln(AnsiColors.heading('Revision details:'))
