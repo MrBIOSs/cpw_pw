@@ -35,7 +35,7 @@ final class ManifestService {
       log.info('Generating initial empty baseline manifest for $type (rev $currentRev)...');
 
       final sink = File(_getManifestPath(type)).openWrite()
-        ..write('# $currentRev\n');
+        ..write('# $currentRev');
       await sink.flush();
       await sink.close();
       log.fine('Empty baseline files.md5 written');
@@ -80,17 +80,20 @@ final class ManifestService {
 
   Future<void> _writeFilesMd5(String type, List<Map<String, dynamic>> files, int currentRev) async {
     final sink = File(_getManifestPath(type)).openWrite()
-      ..write('# $currentRev\n');
+      ..write('# $currentRev');
 
-    for (final f in files) {
-      final folder = f['folder_base64'] as String;
-      final file = f['file_base64'] as String;
-      final md5 = f['md5'] as String;
+    for (var i = 0; i < files.length; i++) {
+      final file = files[i];
+      final folderBase64 = file['folder_base64'] as String;
+      final fileBase64 = file['file_base64'] as String;
+      final md5 = file['md5'] as String;
 
-      if (folder.isNotEmpty) {
-        sink.write('$md5 $folder/$file\n');
+      sink.write('\n');
+
+      if (folderBase64.isNotEmpty) {
+        sink.write('$md5 $folderBase64/$fileBase64');
       } else {
-        sink.write('$md5 $file\n');
+        sink.write('$md5 $file');
       }
     }
 
@@ -114,23 +117,25 @@ final class ManifestService {
       final totalSize = _config.addSize
           ? ' ${_calculateTotalSize(files, fromRev, currentRev)}'
           : '';
-      sink.write('# $fromRev $currentRev$totalSize\n');
+      sink.write('# $fromRev $currentRev$totalSize');
 
-      for (final f in files) {
-        final revision = Utils.parseInt(f['revision']);
-        final added = Utils.parseInt(f['added']);
-        final folder = f['folder_base64'] as String;
-        final file = f['file_base64'] as String;
-        final md5 = f['md5'] as String;
+      for (final file in files) {
+        final revision = Utils.parseInt(file['revision']);
+        final added = Utils.parseInt(file['added']);
+        final folderBase64 = file['folder_base64'] as String;
+        final fileBase64 = file['file_base64'] as String;
+        final md5 = file['md5'] as String;
 
         if (revision > fromRev && revision <= currentRev) {
           // '+' = new file in this patch, '!' = changed
           final prefix = (added == revision) ? '+' : '!';
 
-          if (folder.isNotEmpty) {
-            sink.write('$prefix$md5 $folder/$file\n');
+          sink.write('\n');
+
+          if (folderBase64.isNotEmpty) {
+            sink.write('$prefix$md5 $folderBase64/$fileBase64');
           } else {
-            sink.write('$prefix$md5 $file\n');
+            sink.write('$prefix$md5 $file');
           }
         }
       }
