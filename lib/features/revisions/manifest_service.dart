@@ -109,8 +109,8 @@ final class ManifestService {
     await _cleanupOldPatches(type, minRev, currentRev);
 
     for (var fromRev = minRev; fromRev < currentRev; fromRev++) {
-      final patchPath = _getPatchPath(type, fromRev);
-      final sink = File(patchPath).openWrite();
+      final patchPath = _getPatchPath(type, currentRev - fromRev);
+      final sink = File(patchPath).openWrite(encoding: latin1);
 
       final totalSize = _config.addSize
           ? ' ${_calculateTotalSize(files, fromRev, currentRev)}'
@@ -153,10 +153,12 @@ final class ManifestService {
         final match = RegExp(r'v-(\d+)\.inc').firstMatch(name);
 
         if (match != null) {
-          final fromRev = int.parse(match.group(1)!);
+          final stepBack  = int.parse(match.group(1)!);
+          final fromRev = currentRev - stepBack;
 
           if (fromRev < minRev || fromRev >= currentRev) {
             await entity.delete();
+            log.fine('Cleaned up old patch file: $name');
           }
         }
       }
@@ -175,8 +177,8 @@ final class ManifestService {
 
   /// Path to incremental patch.
   /// Example: /app/files/CPW/element/v-3.inc
-  String _getPatchPath(String type, int fromRev) =>
-      path.join(_config.resolveSubDir(_config.patchCpwDir, type), 'v-$fromRev.inc');
+  String _getPatchPath(String type, int rev) =>
+      path.join(_config.resolveSubDir(_config.patchCpwDir, type), 'v-$rev.inc');
 
   /// Example: /app/files/CPW/element/files.md5
   String _getManifestPath(String type) =>

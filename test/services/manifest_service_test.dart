@@ -35,7 +35,7 @@ void main() {
       patchCpwDir: 'cpw',
       minLauncherVer: 1,
       minPatcherVer: 1,
-      minElementVer: 2,
+      minElementVer: 3,
       removeFiles: false,
       addSize: true,
     );
@@ -74,7 +74,7 @@ void main() {
 
     test('Skips generation if the database is empty', () async {
       const state = (
-      elementCurrentVer: 2,
+      elementCurrentVer: 3,
       launcherCurrentVer: 1,
       patcherCurrentVer: 1,
       );
@@ -91,7 +91,7 @@ void main() {
 
     test('Successfully creates .md5 files, patches, and a version file.', () async {
       const state = (
-      elementCurrentVer: 3,
+      elementCurrentVer: 4,
       launcherCurrentVer: 1,
       patcherCurrentVer: 1,
       );
@@ -101,16 +101,16 @@ void main() {
           'md5': 'md5_file1',
           'folder_base64': 'folder1',
           'file_base64': 'file1.txt',
-          'revision': 2,
-          'added': 2,
+          'revision': 3,
+          'added': 3,
           'size': 100,
         },
         {
           'md5': 'md5_file2',
           'folder_base64': 'folder1',
           'file_base64': 'file2.txt',
-          'revision': 3,
-          'added': 2,
+          'revision': 4,
+          'added': 3,
           'size': 200,
         }
       ];
@@ -128,19 +128,19 @@ void main() {
       expect(manifestFile.existsSync(), true);
 
       final manifestContent = manifestFile.readAsLinesSync();
-      expect(manifestContent[0], '# 3');
+      expect(manifestContent[0], '# 4');
       expect(manifestContent[1], 'md5_file1 folder1/file1.txt');
       expect(manifestContent[2], 'md5_file2 folder1/file2.txt');
 
       final versionFile = File(path.join(outputDirPath, 'version'));
       expect(versionFile.existsSync(), true);
-      expect(versionFile.readAsStringSync(), '3');
+      expect(versionFile.readAsStringSync(), '4');
 
-      final patchFile = File(path.join(outputDirPath, 'v-2.inc'));
+      final patchFile = File(path.join(outputDirPath, 'v-1.inc'));
       expect(patchFile.existsSync(), true);
 
       final patchDiff2Lines = patchFile.readAsLinesSync();
-      expect(patchDiff2Lines[0], '# 2 3 200'); // 200 size
+      expect(patchDiff2Lines[0], '# 3 4 200'); // 200 size
       expect(patchDiff2Lines[1], '!md5_file2 folder1/file2.txt'); // added(2) != revision(3) - '!'
 
       verify(() => mockRsa.signFile(manifestFile.path)).called(1);
@@ -153,6 +153,7 @@ void main() {
       launcherCurrentVer: 1,
       patcherCurrentVer: 1,
       );
+
       final dbRows = [
         {
           'md5': 'md5_file1',
@@ -170,8 +171,8 @@ void main() {
       final outputDirPath = mockConfig.resolvePath('${mockConfig.patchPath}/${mockConfig.patchCpwDir}/element');
       Directory(outputDirPath).createSync(recursive: true);
 
-      final oldPatch = File('$outputDirPath/v-1.inc')..createSync();
-      final validPatch = File('$outputDirPath/v-3.inc')..createSync();
+      final oldPatch = File('$outputDirPath/v-3.inc')..createSync();
+      final validPatch = File('$outputDirPath/v-2.inc')..createSync();
 
       await manifestService.generateManifests('element', state);
 
@@ -199,12 +200,12 @@ void main() {
       expect(manifestFile.existsSync(), isTrue);
 
       final manifestLines = manifestFile.readAsLinesSync();
-      expect(manifestLines[0], equals('# 2'));
+      expect(manifestLines[0], equals('# 3'));
       expect(manifestLines.length, equals(1));
 
       final versionFile = File(path.join(outputDirPath, 'version'));
       expect(versionFile.existsSync(), isTrue);
-      expect(versionFile.readAsStringSync(), equals('2'));
+      expect(versionFile.readAsStringSync(), equals('3'));
 
       final incFiles = Directory(outputDirPath).listSync().where((e) => e.path.endsWith('.inc'));
       expect(incFiles, isEmpty);

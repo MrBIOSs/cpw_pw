@@ -10,9 +10,18 @@ final class Base64PathEncoder {
   static String encode(String relativePath) {
     if (relativePath.isEmpty) return '';
 
-    final bytes = utf8.encode(relativePath);
-    final base64 = base64Encode(bytes);
-    return base64.replaceAll('/', '-').replaceAll('+', '_');
+    final parts = relativePath.split('/');
+    final encodedParts = <String>[];
+    for (final part in parts) {
+      if (part.isEmpty) continue;
+
+      final bytes = utf8.encode(part);
+      var encodedPart = base64Encode(bytes);
+      encodedPart = encodedPart.replaceAll('/', '-');
+
+      encodedParts.add(encodedPart);
+    }
+    return encodedParts.join('/');
   }
 
   static String decode(String encoded) {
