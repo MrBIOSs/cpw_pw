@@ -135,7 +135,7 @@ final class ManifestService {
           if (folderBase64.isNotEmpty) {
             sink.write('$prefix$md5 $folderBase64/$fileBase64');
           } else {
-            sink.write('$prefix$md5 $file');
+            sink.write('$prefix$md5 $fileBase64');
           }
         }
       }
