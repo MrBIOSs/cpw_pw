@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:cpw_pw/config/config.dart';
@@ -26,7 +27,6 @@ final class ManifestService {
     final minRev = _config.getMinRevisionState().getCurrent(type);
     final currentRev = isInitial ? minRev : state.getCurrent(type);
 
-
     if (currentRev < minRev) {
       throw StateError('Current revision ($currentRev) is less than minimum ($minRev). Run `./cpw initial` first.');
     }
@@ -35,7 +35,7 @@ final class ManifestService {
       log.info('Generating initial empty baseline manifest for $type (rev $currentRev)...');
 
       final sink = File(_getManifestPath(type)).openWrite()
-        ..write('# $currentRev');
+        ..write('# $currentRev\n');
       await sink.flush();
       await sink.close();
       log.fine('Empty baseline files.md5 written');
@@ -43,7 +43,7 @@ final class ManifestService {
       await _rsa.signFile(_getManifestPath(type));
       log.fine('RSA signature appended to baseline manifest');
 
-      await File(_getVersionPath(type)).writeAsString('$currentRev\n');
+      await File(_getVersionPath(type)).writeAsString('$currentRev');
       log.info('$type initial manifest completed successfully');
       return;
     }
@@ -74,12 +74,12 @@ final class ManifestService {
     await _generateIncrementalPatches(type, files, minRev, currentRev);
     log.fine('Incremental patches generated');
 
-    await File(_getVersionPath(type)).writeAsString('$currentRev\n');
+    await File(_getVersionPath(type)).writeAsString('$currentRev');
     log.info('$type manifests completed successfully');
   }
 
   Future<void> _writeFilesMd5(String type, List<Map<String, dynamic>> files, int currentRev) async {
-    final sink = File(_getManifestPath(type)).openWrite()
+    final sink = File(_getManifestPath(type)).openWrite(encoding: latin1)
       ..write('# $currentRev');
 
     for (var i = 0; i < files.length; i++) {

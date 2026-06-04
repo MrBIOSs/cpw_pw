@@ -84,13 +84,15 @@ ${keys.publicKeyPem}
     if (!file.existsSync()) {
       throw FileSystemException('File not found for signing', filePath);
     }
-    final content = await file.readAsBytes();
+    final textContent = await file.readAsString(encoding: latin1);
+    final normalizedText = textContent.replaceAll('\r\n', '\n').replaceAll('\r', '');
+    final contentBytes = Uint8List.fromList(latin1.encode(normalizedText));
 
-    final signature = _signWithMd5Rsa(data: content, key: keys);
+    final signature = _signWithMd5Rsa(data: contentBytes, key: keys);
     final signatureBase64 = base64Encode(signature);
 
     final sink = file.openWrite(mode: FileMode.append)
-      ..write('\n-----BEGIN ELEMENT SIGNATURE-----\n');
+      ..write('-----BEGIN ELEMENT SIGNATURE-----\n');
 
     for (var i = 0; i < signatureBase64.length; i += 64) {
       final end = i + 64 > signatureBase64.length ? signatureBase64.length : i + 64;
@@ -117,26 +119,12 @@ ${keys.publicKeyPem}
   }) {
     final privateKey = RSAPrivateKey(key.modulus, key.privateExponent, key.p, key.q);
     final md5 = MD5Digest();
-    final hash = md5.process(data);
 
-    final digestInfo = Uint8List.fromList([
-      0x30, 0x20, // SEQUENCE, length 32
-      0x30, 0x0c, //   SEQUENCE, length 12
-      0x06, 0x08, //     OID, length 8
-      0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x02, 0x05, // 1.2.840.113549.2.5
-      0x05, 0x00, //     NULL
-      0x04, 0x10, //   OCTET STRING, length 16 (MD5 hash)
-      ...hash,
-    ]);
+    final signer = RSASigner(md5, '06082a864886f70d0205') // special OID prefix for MD5 in PKCS#1 v1.5
+      ..init(true, PrivateKeyParameter<RSAPrivateKey>(privateKey));
 
-    final cipher = PKCS1Encoding(RSAEngine())
-      ..init(
-        true,
-        PrivateKeyParameter<RSAPrivateKey>(privateKey),
-      );
-
-    final signatureBytes = cipher.process(digestInfo);
-    return signatureBytes;
+    final signature = signer.generateSignature(data);
+    return signature.bytes;
   }
 
   Future<RsaKeyPair> _generateKeyPair({required int keySize}) async {
