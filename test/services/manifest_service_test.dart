@@ -134,7 +134,7 @@ void main() {
 
       final versionFile = File(path.join(outputDirPath, 'version'));
       expect(versionFile.existsSync(), true);
-      expect(versionFile.readAsStringSync(), '3\n');
+      expect(versionFile.readAsStringSync(), '3');
 
       final patchFile = File(path.join(outputDirPath, 'v-2.inc'));
       expect(patchFile.existsSync(), true);
@@ -204,7 +204,7 @@ void main() {
 
       final versionFile = File(path.join(outputDirPath, 'version'));
       expect(versionFile.existsSync(), isTrue);
-      expect(versionFile.readAsStringSync(), equals('2\n'));
+      expect(versionFile.readAsStringSync(), equals('2'));
 
       final incFiles = Directory(outputDirPath).listSync().where((e) => e.path.endsWith('.inc'));
       expect(incFiles, isEmpty);
