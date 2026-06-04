@@ -87,7 +87,7 @@ ${keys.publicKeyPem}
     final content = await file.readAsBytes();
 
     final signature = _signWithMd5Rsa(data: content, key: keys);
-    final signatureBase64 = base64Encode(signature).replaceAll('=', '');
+    final signatureBase64 = base64Encode(signature);
 
     final sink = file.openWrite(mode: FileMode.append)
       ..write('\n-----BEGIN ELEMENT SIGNATURE-----\n');

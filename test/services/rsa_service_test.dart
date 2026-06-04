@@ -132,7 +132,7 @@ void main() {
 
       final lines = fileContent.split('\n');
       final lastContentLine = lines[lines.length - 2];
-      expect(lastContentLine, isNot(endsWith('=')));
+      expect(lastContentLine, endsWith('='));
 
       final signatureBlockStart = lines.indexOf('-----BEGIN ELEMENT SIGNATURE-----');
       expect(signatureBlockStart, isNot(-1));

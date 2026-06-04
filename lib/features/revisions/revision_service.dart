@@ -54,7 +54,7 @@ final class RevisionService {
       await _dbService.dispose();
     }
 
-    await _writeVersionFiles(initialState);
+    await _writeVersionFiles(initialState, initialState);
     log
       ..fine('Version files initialized')
       ..info('Base revision state initialized');
@@ -64,26 +64,37 @@ final class RevisionService {
   /// Packs files, writes to the database, increments the version.
   Future<RevisionState> createNext({bool force = false}) async {
     final current = await syncVersionFilesToDb();
-    final nextState = force
-        ? current
-        :(
-    elementCurrentVer: current.elementCurrentVer + 1,
-    launcherCurrentVer: current.launcherCurrentVer + 1,
-    patcherCurrentVer: current.patcherCurrentVer + 1,
+
+    final hasNewElement = !force && await _hasFilesToPack('element');
+    final hasNewLauncher = !force && await _hasFilesToPack('launcher');
+    final hasNewPatcher = !force && await _hasFilesToPack('patcher');
+
+    final nextState = (
+    elementCurrentVer: hasNewElement ? current.elementCurrentVer + 1 : current.elementCurrentVer,
+    launcherCurrentVer: hasNewLauncher ? current.launcherCurrentVer + 1 : current.launcherCurrentVer,
+    patcherCurrentVer: hasNewPatcher ? current.patcherCurrentVer + 1 : current.patcherCurrentVer,
     );
 
-    log.info(force
-        ? 'Re-creating current revision: ${current.elementCurrentVer}'
-        : 'Creating next revision: ${current.elementCurrentVer} to ${nextState.elementCurrentVer}');
+    log
+      ..info('Current state: ${current.elementCurrentVer}/${current.launcherCurrentVer}/${current.patcherCurrentVer}')
+      ..info('Next state: ${nextState.elementCurrentVer}/${nextState.launcherCurrentVer}/${nextState.patcherCurrentVer}');
 
     try {
       if (!_dbService.isConnected) {
         await _dbService.initialize();
       }
       for (final type in ['element', 'launcher', 'patcher']) {
+        final currentVer = current.getCurrent(type);
+        final nextVer = nextState.getCurrent(type);
+
+        if (nextVer == currentVer && !force) {
+          log.info('No new files detected for $type. Version remains $currentVer. Skipping.');
+          continue;
+        }
+
         await _packFiles(type, nextState, force: force);
       }
-      await _writeVersionFiles(nextState);
+      await _writeVersionFiles(current, nextState);
     } finally {
       await _dbService.dispose();
     }
@@ -112,6 +123,21 @@ final class RevisionService {
       }
     }
     return state;
+  }
+
+  /// Checks if there are files in the folder "new/{type}/"
+  Future<bool> _hasFilesToPack(String type) async {
+    final sourcePath = _config.resolveSubDir(_config.patchNewDir, type);
+    final sourceDir = Directory(sourcePath);
+
+    if (!sourceDir.existsSync()) return false;
+
+    await for (final entity in sourceDir.list(recursive: true)) {
+      if (entity is File && _isIncluded(entity)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Returns the current state of revisions (from DB).
@@ -287,18 +313,24 @@ final class RevisionService {
   }
 
   /// Initializes version files to the current revision value.
-  Future<void> _writeVersionFiles(RevisionState state) async {
-    for (final entry in [
-      ('element', state.elementCurrentVer),
-      ('launcher', state.launcherCurrentVer),
-      ('patcher', state.patcherCurrentVer),
-    ]) {
-      final (type, version) = entry;
+  Future<void> _writeVersionFiles(RevisionState oldState, RevisionState newState) async {
+    final entries = [
+      ('element', oldState.elementCurrentVer, newState.elementCurrentVer),
+      ('launcher', oldState.launcherCurrentVer, newState.launcherCurrentVer),
+      ('patcher', oldState.patcherCurrentVer, newState.patcherCurrentVer),
+    ];
+
+    for (final (type, oldVer, newVer) in entries) {
       final versionPath = _getVersionFilePath(type);
       final file = File(versionPath);
 
-      await file.writeAsString('$version\n');
-      log.fine('Written $version to $versionPath');
+      if (oldVer == newVer && file.existsSync()) {
+        log.fine('Version for $type has not changed ($oldVer). Skipping file write.');
+        continue;
+      }
+
+      await file.writeAsString('$newVer\n');
+      log.fine('Written updated version $newVer to $versionPath');
     }
   }
 
