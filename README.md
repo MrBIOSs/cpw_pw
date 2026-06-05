@@ -37,6 +37,7 @@
 - [ ] Integrate CPW into the **Web Admin Panel**
 - [ ] Upgrade RSA signature size to **2048-bit**
 - [ ] Migrate from MD5withRSA to **SHA-256withRSA**
+- [ ] New modern launcher
 
 ---
 
@@ -231,9 +232,8 @@ min-launcher-ver=1
 min-patcher-ver=1
 
 # Flags
-remove-folders=true
-remove-files=true
-add-size=true
+remove-input-files=true
+add-file-size-to-inc=true
 ```
 
 ### Overriding via environment variables
@@ -371,7 +371,7 @@ The client source code must include a placeholder token of sufficient size.
 4. Synchronizes the state with the database
 5. Creates `/info/pid` with default value 101
 
-**Attention**: delete all `*.sw` files on the original client in the `/config/(element, launcher, patcher)` folder
+**Warning**: Delete all `*.sw` files except **version** on the original client in the `/config/(element, launcher, patcher)` folder.
 
 ---
 
@@ -394,7 +394,7 @@ The client source code must include a placeholder token of sufficient size.
 **What it does:**
 1. Reads files from `files/new/{type}/` (recursively)
 2. Compresses each file using the format: `[4-byte LE size][deflate(data, level=1)]`
-3. Renames the files to Base64 (e.g., `data/config.ini` becomes `ZGF0YV9jb25maWcuaW5p`)
+3. Renames the files to Base64 (e.g., `data/config.ini` becomes `ZGF0YQ==/Y29uZmlnLmluaQ==`)
 4. Calculates the MD5 checksum of the **compressed** file
 5. Writes metadata to the database (via UPSERT)
 6. Automatically generates manifests (`files.md5`, `v-N.inc`, along with the RSA signature)
@@ -407,8 +407,8 @@ Revision published successfully!
 
 New revision state:
   element:   v2
-  launcher:  v2
-  patcher:   v2
+  launcher:  v1
+  patcher:   v1
 
 Clients can now update to this revision.
 ```
@@ -436,7 +436,7 @@ Clients can now update to this revision.
    ```
    # 2
    abc123... data/Y29uZmlnLmluaQ    # first entry in the folder
-   def456... Y29uZmlnLmluaQ         # the rest are in the same folder
+   def456... data/Y29uZmlnLmlua=    # the rest are in the same folder
    ```
 3. Signs the manifest using MD5withRSA
 4. Generates incremental patches (`v-N.inc`) with the following prefixes:
@@ -480,6 +480,7 @@ cp -r ~/game-client/launcher/* files/new/launcher/
 ```bash
 # 1. We put new/modified files
 cp new_feature.data files/new/element/data/
+cp *.pck.files files/new/element/ 
 
 # 2. Create a new revision
 ./cpw new

@@ -21,7 +21,7 @@ class PackerService {
 
     final inputBytes = await source.readAsBytes();
     final uncompressedSize = inputBytes.length;
-    final compressor = ZLibEncoder(level: 1, raw: true);
+    final compressor = ZLibEncoder(level: 1);
     final compressedList = compressor.convert(inputBytes);
     final compressedBytes = Uint8List.fromList(compressedList);
     final outputBytes = uncompressedSize <= compressedBytes.length
