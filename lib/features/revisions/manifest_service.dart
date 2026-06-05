@@ -79,7 +79,7 @@ final class ManifestService {
   }
 
   Future<void> _writeFilesMd5(String type, List<Map<String, dynamic>> files, int currentRev) async {
-    final sink = File(_getManifestPath(type)).openWrite(encoding: latin1)
+    final sink = File(_getManifestPath(type)).openWrite()
       ..write('# $currentRev\n');
 
     for (var i = 0; i < files.length; i++) {
@@ -110,7 +110,7 @@ final class ManifestService {
 
     for (var fromRev = minRev; fromRev < currentRev; fromRev++) {
       final patchPath = _getPatchPath(type, currentRev - fromRev);
-      final sink = File(patchPath).openWrite(encoding: latin1);
+      final sink = File(patchPath).openWrite();
 
       final totalSize = _config.addSize
           ? ' ${_calculateTotalSize(files, fromRev, currentRev)}'

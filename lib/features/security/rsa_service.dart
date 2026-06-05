@@ -84,9 +84,9 @@ ${keys.publicKeyPem}
     if (!file.existsSync()) {
       throw FileSystemException('File not found for signing', filePath);
     }
-    final textContent = await file.readAsString(encoding: latin1);
+    final textContent = await file.readAsString();
     final normalizedText = textContent.replaceAll('\r\n', '\n').replaceAll('\r', '');
-    final contentBytes = Uint8List.fromList(latin1.encode(normalizedText));
+    final contentBytes = Uint8List.fromList(utf8.encode(normalizedText));
 
     final signature = _signWithMd5Rsa(data: contentBytes, key: keys);
     final signatureBase64 = base64Encode(signature);
