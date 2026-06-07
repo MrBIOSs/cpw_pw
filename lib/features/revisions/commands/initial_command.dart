@@ -35,7 +35,7 @@ final class InitialCommand {
           ..writeln(AnsiColors.dim('  - DB:   resetting "files" table'))
           ..writeln()
           ..writeln(AnsiColors.dim('Would create directories:'))
-          ..writeln(AnsiColors.dim('  - info/pid'));
+          ..writeln(AnsiColors.dim('  - ${_config.resolveSubDir(_config.patchCpwDir, 'info/pid')}'));
         for (final type in ['element', 'launcher', 'patcher']) {
           stdout
             ..writeln(AnsiColors.dim('  - ${_config.resolveSubDir(_config.patchCpwDir, type)}/'))

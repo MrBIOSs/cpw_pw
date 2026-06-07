@@ -12,7 +12,7 @@ final class ListgenCommand {
 
     if (isHelp) {
       stdout
-        ..writeln(AnsiColors.heading('Help — regenerate manifests only'))
+        ..writeln(AnsiColors.heading('Help mode - regenerate manifests only'))
         ..writeln(AnsiColors.dim('  - Read current state from DB/files'))
         ..writeln(AnsiColors.dim('  - Rebuild files.md5 & v-N.inc'))
         ..writeln(AnsiColors.dim('  - Sign with RSA'));

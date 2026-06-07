@@ -15,7 +15,7 @@ final class InstallCommand {
 
     if (isHelp) {
       stdout
-        ..writeln(AnsiColors.heading('Help mode — no changes will be made'))
+        ..writeln(AnsiColors.heading('Help mode - no changes will be made'))
         ..writeln();
     }
 
@@ -38,7 +38,7 @@ final class InstallCommand {
           ..writeln(AnsiColors.dim('This command does:'))
           ..writeln(AnsiColors.dim('  - Connects to the database.'))
           ..writeln(AnsiColors.dim('  - Runs the install script if any required tables are missing.'))
-          ..writeln(AnsiColors.dim('  - Generates new 2048-bit RSA keys if they do not exist.'))
+          ..writeln(AnsiColors.dim('  - Generates new 1024-bit RSA keys if they do not exist.'))
           ..writeln();
         return 0;
       }

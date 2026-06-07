@@ -13,7 +13,7 @@ final class NewCommand {
 
     if (isHelp) {
       stdout
-        ..writeln(AnsiColors.heading('Help — next revision'))
+        ..writeln(AnsiColors.heading('Help mode - next revision'))
         ..writeln(AnsiColors.dim('  - Pack files: files/new/* to files/CPW/*'))
         ..writeln(AnsiColors.dim('  - Update database metadata'))
         ..writeln(AnsiColors.dim('  - Increment revision: current + 1'))

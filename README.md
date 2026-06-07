@@ -480,7 +480,9 @@ cp -r ~/game-client/launcher/* files/new/launcher/
 ```bash
 # 1. We put new/modified files
 cp new_feature.data files/new/element/data/
-cp *.pck.files files/new/element/ 
+
+# for .pck
+cp *.pck.files/ files/new/element/name_pck/ 
 
 # 2. Create a new revision
 ./cpw new
@@ -754,5 +756,10 @@ MIT License - see [LICENSE](LICENSE) file.
 
 - Bugs: [GitHub Issues](https://github.com/MrBIOSs/cpw_pw/issues)
 - Email: nikolausgorkun@gmail.com
+
+### Support the Project 💖
+If you want to support development, click the **Sponsor** button:
+* Use the **Boosty** link for card payments (RUB/USD/EUR).
+* Use the **Tronscan** link to copy the **USDT (TRC-20)** wallet address.
 
 ---
