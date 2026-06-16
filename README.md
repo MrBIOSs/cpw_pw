@@ -143,6 +143,9 @@ dart --version  # Dart SDK version: 3.10.0 or later
 
 # MySQL
 mysql --version  # mysql  Ver 8.x or 5.7.x
+
+# MariaDB
+mariadb --version # mariadb (MySQL)  Ver 15.1 Distrib 10.6.25-MariaDB
 ```
 
 ---
@@ -451,6 +454,31 @@ Clients can now update to this revision.
 
 ---
 
+#### Full detailed instructions
+
+1. Download CPW from Releases.
+2. Configure your database and settings in `config/patcher.conf`.
+3. Upload the files to any folder on your server.
+4. Run **./cpw install** to set up the DB tables and generate your RSA keys.
+5. Run **./cpw initial** to create the base (initial) revision state and prepare for updates.
+6. Create a symlink to make the output files downloadable via your web server:
+```bash
+ln -s /path/to/files/CPW /var/www/html/<NAME>
+```
+7. Drop your updated game files into the files/new/directory. For example:
+	- `/element/data/tasks.data`
+	- For .pck changes: unpack the archive beforehand and put only the specific files you want to add to the update (e.g. `/element/surfaces/<FOLDER_NAME>/<FILE_NAME>`).
+8. In your original client, delete all `*.sw` files except `version.sw` inside the `/config/(element, launcher, patcher)` folders. Set the version to **1** inside those version.sw files. Also, set **101** in `/patcher/server/pid.ini` since the default value in CPW is **101**.
+9. Copy `Launcher.exe` and `patcher.exe` from your client to any working directory on your server.
+10. Patch the client binaries with your generated public key using **./cpw x /path/to/Launcher.exe** and **./cpw x /path/to/patcher.exe**.
+11. Copy the patched executables back into your client folder (overwrite the old ones).
+12. Update the patcher URL in the client's `/patcher/server/updateserver.txt` file to point to your actual URL:
+```
+http://<ADDRESS>:<PORT>/<NAME>/
+```
+13. Run the launcher and test the update.
+
+
 ## Examples of use
 
 ### Full workflow (first run)
@@ -460,19 +488,22 @@ Clients can now update to this revision.
 ./cpw install
 # Prompts for database credentials, generates keys, and creates directory structure
 
-# 2. Preparing Source Files
+# 2. Creating a base revision
+./cpw initial
+
+# 3. Preparing Source Files
 cp -r ~/game-client/element/* files/new/element/
 cp -r ~/game-client/launcher/* files/new/launcher/
 
-# 3. Creating the First Revision
+# 4. Creating the First Revision
 ./cpw new
 # Packs files, writes metadata to the DB, and generates manifests
 
-# 4. Patching the Client Binaries (Done once during build)
+# 5. Patching the Client Binaries (Done once during build)
 ./cpw x client/launcher.exe
 ./cpw x client/patcher.exe
 
-# 5. Distribution: Files inside files/CPW/ are ready for client download
+# 6. Distribution: Files inside files/CPW/ are ready for client download
 ```
 
 ### Adding an update
